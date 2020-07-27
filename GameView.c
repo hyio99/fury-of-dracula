@@ -19,7 +19,7 @@
 #include "Map.h"
 #include "Places.h"
 // add your own #includes here
-
+#include <string.h>
 
 /*//Structs
 struct Dracula {
@@ -36,10 +36,13 @@ struct Trail {
     struct Trail *next;
 
 }; Trail;*/
+typedef enum Vampire_State {
+    VAMPIRE_TRUE,
+    VAMPIRE_FALSE
+} Vampire_State;
 
 
-//Adjacentry matrix of all the locations?
-
+//Struct for Player Views
 typedef struct playerView {
     Player Player_Name;
     int Player_Health;
@@ -47,12 +50,14 @@ typedef struct playerView {
     
 } playerView;
 
+//Struct for immature vampires
+typedef struct Vampire {
+    int Vampire_State;
+    int Vampire_Round;
+    PlaceId Vampire_Location;
 
-/*typedef struct Dracula {
-    int Dracula_Health;
-    PlaceId Dracula_Location;
+} Vampire;
 
-} Dracula;*/
 
 struct gameView {
 	//Integer for GameScore
@@ -63,8 +68,8 @@ struct gameView {
 	Player Current_Player;
 	//Linked-list of players/array
 	playerView PlayerList[NUM_PLAYERS]; 
-
-	
+	//Struct for immature vampires (use linked list?)
+	Vampire Vampire;
 	
 };
 
@@ -98,10 +103,54 @@ GameView GvNew(char *pastPlays, Message messages[])
 	    new->PlayerList[i].Player_Location = NOWHERE;
 	}
 	
-	/*/Initialising the Dracula Structs
-	new->Dracula.Dracula_Health = GAME_START_BLOOD_POINTS;
-	new->Dracula.Dracula_Location = NOWHERE;
-	*/
+	//Initialising the Vampire
+	new->Vampire.Vampire_Location = NOWHERE;
+	new->Vampire.Vampire_Round = 0;
+	
+	
+	//Reading in the PastPlays using strtok
+	char * cur_play = strtok(pastPlays, " \n");
+	
+	int pastPlays_counter = 0;
+	//counting the round numbers
+	while (cur_play != NULL) {
+	    
+	    
+	    //Checking if the string is segmented properly
+	    printf("%s\n", cur_play);
+	    
+	    
+	    //New round has started 
+	    if ((pastPlays_counter % 6) == 0) {
+	        new->Round_no++;
+	    }
+	    //Figuring out the move of the Player -> locations
+	    
+	    
+	        //if the player is dracula and vampire round
+	        //Add vampire into linked list of vampires.
+	        
+	        
+	        
+	            //If Dracula is on sea -2
+	    
+	    
+	    
+	    //Change the player location to moves
+	    
+	    
+	    
+	    //Next Player 
+	    
+	    
+	    //
+	    cur_play = strtok(NULL, " \n");
+	    pastPlays_counter++;
+	}
+	
+	
+	
+	
 	return new;
 }
 
@@ -142,25 +191,51 @@ int GvGetHealth(GameView gv, Player player)
 
 PlaceId GvGetPlayerLocation(GameView gv, Player player)
 {
+    //Return NOWHERE if the given player has not had a turn yet.
+    if (gv->Round_no == 0) {
+        return NOWHERE;
+    }
     
-	for (int i = 0; i < NUM_PLAYERS; i++) {
-	    if (gv->PlayerList[i].Player_Name == player) {
-	        return gv->PlayerList[i].Player_Location;
+    //Player Location for Hunters
+    if (player != PLAYER_DRACULA) {
+	    for (int i = 0; i < NUM_PLAYERS; i++) {
+	        if (gv->PlayerList[i].Player_Name == player) {
+	            return gv->PlayerList[i].Player_Location;
+	        }
+	    }
+	} else {
+	//Player Location for Dracula
+	    //Loop that checks if location has been revealed / if Dracula's current
+	    //location has been revealed anywhere in the trail
+	    
+	    //else if it hasn't been revealed
+	    
+	    //Check for whether the place is on land or sea
+	    if (placeIsLand(gv->PlayerList[PLAYER_DRACULA].Player_Location) == LAND) {
+	        return CITY_UNKNOWN;
+	    } else {
+	        return SEA_UNKNOWN;
 	    }
 	}
 	//maybe return error code if not found?
 	return 0;
 }
-
+//immature vampire;
 PlaceId GvGetVampireLocation(GameView gv)
 {
-	return NOWHERE;
+	return gv->Vampire.Vampire_Location;
 }
 
 PlaceId *GvGetTrapLocations(GameView gv, int *numTraps)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	*numTraps = 0;
+	//For each Trap, go through array of previous traps and see which ones are
+	//active. Count the num traps.
+	
+	//Dynamically allocate size of array based on numTraps
+	
+	//Copy paste the number of traps
+	
+	//Return the malloced array
 	return NULL;
 }
 
