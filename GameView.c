@@ -28,10 +28,7 @@ struct Dracula {
 
 };
 // TODO: ADD YOUR OWN STRUCTS HERE
-struct Player {
-    int health;
-    
-};
+
 // Linked list for trail where a node points to the next on 
 struct Trail {
     int trail_position;
@@ -43,13 +40,22 @@ struct Trail {
 
 //Adjacentry matrix of all the locations?
 
+typedef struct playerView {
+    Player Player_Name;
+    int Player_Health;
+    PlaceId Player_Location;
+    
+} playerView;
+
 struct gameView {
 	//Integer for GameScore
 	int GameScore;
 	//Integer for round no.
 	Round Round_no;
-	//Player's who has the current turn
+	//Player who has the current turn
 	Player Current_Player;
+	//Linked-list of players/array
+	playerView PlayerList[NUM_PLAYERS]; 
 	
 	
 };
@@ -69,7 +75,15 @@ GameView GvNew(char *pastPlays, Message messages[])
 	new->Round_no = 0;
 	new->Current_Player = PLAYER_LORD_GODALMING;
 	
-
+	Player PlayerArray[] = {PLAYER_LORD_GODALMING, PLAYER_DR_SEWARD, 
+	                        PLAYER_VAN_HELSING,	PLAYER_MINA_HARKER,		
+	                        PLAYER_DRACULA};
+	                        
+	for (int i = 0; i < NUM_PLAYERS; i++) {
+	    new->PlayerList[i].Player_Name = PlayerArray[i];
+	    new->PlayerList[i].Player_Health = GAME_START_HUNTER_LIFE_POINTS;
+	    new->PlayerList[i].Player_Location = NOWHERE;
+	}
 	return new;
 }
 
@@ -99,14 +113,24 @@ int GvGetScore(GameView gv)
 
 int GvGetHealth(GameView gv, Player player)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+	for (int i = 0; i < NUM_PLAYERS; i++) {
+	    if (gv->PlayerList[i].Player_Name == player) {
+	        return gv->PlayerList[i].Player_Health;
+	    }
+	}
+	//maybe return error code if not found?
 	return 0;
 }
 
 PlaceId GvGetPlayerLocation(GameView gv, Player player)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return NOWHERE;
+	for (int i = 0; i < NUM_PLAYERS; i++) {
+	    if (gv->PlayerList[i].Player_Name == player) {
+	        return gv->PlayerList[i].Player_Location;
+	    }
+	}
+	//maybe return error code if not found?
+	return 0;
 }
 
 PlaceId GvGetVampireLocation(GameView gv)
