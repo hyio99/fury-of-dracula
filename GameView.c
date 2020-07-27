@@ -78,7 +78,10 @@ struct gameView {
 
 GameView GvNew(char *pastPlays, Message messages[])
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+
+
+
+//////////////////////////INITIALISING STATE////////////////////////////////////
 	GameView new = malloc(sizeof(*new));
 	if (new == NULL) {
 		fprintf(stderr, "Couldn't allocate GameView!\n");
@@ -91,6 +94,7 @@ GameView GvNew(char *pastPlays, Message messages[])
 	Player PlayerArray[] = {PLAYER_LORD_GODALMING, PLAYER_DR_SEWARD, 
 	                        PLAYER_VAN_HELSING,	PLAYER_MINA_HARKER,		
 	                        PLAYER_DRACULA};
+	                        
 	                        
 	//Initialising the Player Structs
 	for (int i = 0; i < NUM_PLAYERS; i++) {
@@ -108,6 +112,11 @@ GameView GvNew(char *pastPlays, Message messages[])
 	new->Vampire.Vampire_Round = 0;
 	
 	
+	
+	
+//////////////////////////READING PLAYS/////////////////////////////////////////
+
+
 	//Reading in the PastPlays using strtok
 	char * cur_play = strtok(pastPlays, " \n");
 	
@@ -115,19 +124,43 @@ GameView GvNew(char *pastPlays, Message messages[])
 	//counting the round numbers
 	while (cur_play != NULL) {
 	    
+	    pastPlays_counter++;
+	    char PlayerAbrLoc[6];
 	    
-	    //Checking if the string is segmented properly
-	    printf("%s\n", cur_play);
+	    //Changing the current Player 
+	    new->Current_Player = PlayerArray[pastPlays_counter % NUM_PLAYERS];
 	    
 	    
 	    //New round has started 
-	    if ((pastPlays_counter % 6) == 0) {
+	    if (pastPlays_counter > 5 && (pastPlays_counter % NUM_PLAYERS) == 1) {
 	        new->Round_no++;
 	    }
+	    //printf("%d\n", new->Round_no);
+	   
 	    //Figuring out the move of the Player -> locations
-	    
-	    
+	    int k = 0;
+	    for (int j = 1; cur_play[j] != '.'; j++) {
+	        PlayerAbrLoc[k] = cur_play[j];
+	        k++;
+	    }
+        //PlayerAbrLoc[k+1] = '\0';
+        
+        
+        //Converting Player String to a placeID
+        PlaceId PlayerLoc = placeAbbrevToId(PlayerAbrLoc);
+	        printf("%d\n", PlayerLoc);
+	    //Changing the location of the current player
+	    for (int i = 0; i < NUM_PLAYERS; i++) {
+            if (new->PlayerList[i].Player_Name == new->Current_Player) {
+                new->PlayerList[i].Player_Location = PlayerLoc;
+                printf("%d\n", new->PlayerList[i].Player_Location);
+            }
+        }
+	
 	        //if the player is dracula and vampire round
+	        
+	        
+	        
 	        //Add vampire into linked list of vampires.
 	        
 	        
@@ -145,7 +178,6 @@ GameView GvNew(char *pastPlays, Message messages[])
 	    
 	    //
 	    cur_play = strtok(NULL, " \n");
-	    pastPlays_counter++;
 	}
 	
 	
@@ -191,19 +223,15 @@ int GvGetHealth(GameView gv, Player player)
 
 PlaceId GvGetPlayerLocation(GameView gv, Player player)
 {
-    //Return NOWHERE if the given player has not had a turn yet.
-    if (gv->Round_no == 0) {
-        return NOWHERE;
-    }
+    //Player Location for Everyone as Gameview shows all
     
-    //Player Location for Hunters
-    if (player != PLAYER_DRACULA) {
-	    for (int i = 0; i < NUM_PLAYERS; i++) {
-	        if (gv->PlayerList[i].Player_Name == player) {
-	            return gv->PlayerList[i].Player_Location;
-	        }
-	    }
-	} else {
+    for (int i = 0; i < NUM_PLAYERS; i++) {
+        if (gv->PlayerList[i].Player_Name == player) {
+            return gv->PlayerList[i].Player_Location;
+        }
+    }
+
+	/*else {
 	//Player Location for Dracula
 	    //Loop that checks if location has been revealed / if Dracula's current
 	    //location has been revealed anywhere in the trail
@@ -217,7 +245,7 @@ PlaceId GvGetPlayerLocation(GameView gv, Player player)
 	        return SEA_UNKNOWN;
 	    }
 	}
-	//maybe return error code if not found?
+	//maybe return error code if not found?*/
 	return 0;
 }
 //immature vampire;
