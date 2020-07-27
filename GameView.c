@@ -47,6 +47,13 @@ typedef struct playerView {
     
 } playerView;
 
+
+/*typedef struct Dracula {
+    int Dracula_Health;
+    PlaceId Dracula_Location;
+
+} Dracula;*/
+
 struct gameView {
 	//Integer for GameScore
 	int GameScore;
@@ -56,6 +63,7 @@ struct gameView {
 	Player Current_Player;
 	//Linked-list of players/array
 	playerView PlayerList[NUM_PLAYERS]; 
+
 	
 	
 };
@@ -79,11 +87,21 @@ GameView GvNew(char *pastPlays, Message messages[])
 	                        PLAYER_VAN_HELSING,	PLAYER_MINA_HARKER,		
 	                        PLAYER_DRACULA};
 	                        
+	//Initialising the Player Structs
 	for (int i = 0; i < NUM_PLAYERS; i++) {
 	    new->PlayerList[i].Player_Name = PlayerArray[i];
-	    new->PlayerList[i].Player_Health = GAME_START_HUNTER_LIFE_POINTS;
+	    if (new->PlayerList[i].Player_Name == PLAYER_DRACULA) {
+	        new->PlayerList[i].Player_Health = GAME_START_BLOOD_POINTS;
+	    } else {
+	        new->PlayerList[i].Player_Health = GAME_START_HUNTER_LIFE_POINTS;
+	    }
 	    new->PlayerList[i].Player_Location = NOWHERE;
 	}
+	
+	/*/Initialising the Dracula Structs
+	new->Dracula.Dracula_Health = GAME_START_BLOOD_POINTS;
+	new->Dracula.Dracula_Location = NOWHERE;
+	*/
 	return new;
 }
 
@@ -124,6 +142,7 @@ int GvGetHealth(GameView gv, Player player)
 
 PlaceId GvGetPlayerLocation(GameView gv, Player player)
 {
+    
 	for (int i = 0; i < NUM_PLAYERS; i++) {
 	    if (gv->PlayerList[i].Player_Name == player) {
 	        return gv->PlayerList[i].Player_Location;
@@ -135,7 +154,6 @@ PlaceId GvGetPlayerLocation(GameView gv, Player player)
 
 PlaceId GvGetVampireLocation(GameView gv)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
 	return NOWHERE;
 }
 
