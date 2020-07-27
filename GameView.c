@@ -20,10 +20,38 @@
 #include "Places.h"
 // add your own #includes here
 
+
+/*//Structs
+struct Dracula {
+    int blood_points;
+    Trail Trail;
+
+};
 // TODO: ADD YOUR OWN STRUCTS HERE
+struct Player {
+    int health;
+    
+};
+// Linked list for trail where a node points to the next on 
+struct Trail {
+    int trail_position;
+    char location[];
+    struct Trail *next;
+
+}; Trail;*/
+
+
+//Adjacentry matrix of all the locations?
 
 struct gameView {
-	// TODO: ADD FIELDS HERE
+	//Integer for GameScore
+	int GameScore;
+	//Integer for round no.
+	Round Round_no;
+	//Player's who has the current turn
+	Player Current_Player;
+	
+	
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -37,6 +65,10 @@ GameView GvNew(char *pastPlays, Message messages[])
 		fprintf(stderr, "Couldn't allocate GameView!\n");
 		exit(EXIT_FAILURE);
 	}
+	new->GameScore = GAME_START_SCORE;
+	new->Round_no = 0;
+	new->Current_Player = PLAYER_LORD_GODALMING;
+	
 
 	return new;
 }
@@ -52,20 +84,17 @@ void GvFree(GameView gv)
 
 Round GvGetRound(GameView gv)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return 0;
+	return gv->Round_no;
 }
 
 Player GvGetPlayer(GameView gv)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return PLAYER_LORD_GODALMING;
+	return gv->Current_Player;
 }
 
 int GvGetScore(GameView gv)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return 0;
+	return gv->GameScore;
 }
 
 int GvGetHealth(GameView gv, Player player)
