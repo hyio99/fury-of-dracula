@@ -78,8 +78,10 @@ struct gameView {
 
 GameView GvNew(char *pastPlays, Message messages[])
 {
-
-
+    //copying string into a string literal
+    char Past_Plays[TURN_LIMIT_MSECS];
+    strcpy(Past_Plays, pastPlays);
+    
 
 //////////////////////////INITIALISING STATE////////////////////////////////////
 	GameView new = malloc(sizeof(*new));
@@ -95,7 +97,7 @@ GameView GvNew(char *pastPlays, Message messages[])
 	                        PLAYER_VAN_HELSING,	PLAYER_MINA_HARKER,		
 	                        PLAYER_DRACULA};
 	                        
-	                        
+	                       
 	//Initialising the Player Structs
 	for (int i = 0; i < NUM_PLAYERS; i++) {
 	    new->PlayerList[i].Player_Name = PlayerArray[i];
@@ -116,52 +118,51 @@ GameView GvNew(char *pastPlays, Message messages[])
 	
 //////////////////////////READING PLAYS/////////////////////////////////////////
 
-
+  
 	//Reading in the PastPlays using strtok
-	char * cur_play = strtok(pastPlays, " \n");
+	char *cur_play = strtok(Past_Plays, " \n");
 	
 	int pastPlays_counter = 0;
 	//counting the round numbers
 	while (cur_play != NULL) {
 	    
 	    pastPlays_counter++;
-	    char PlayerAbrLoc[6];
 	    
-	    //Changing the current Player 
-	    new->Current_Player = PlayerArray[pastPlays_counter % NUM_PLAYERS];
-	    
-	    
-	    //New round has started 
-	    if (pastPlays_counter > 5 && (pastPlays_counter % NUM_PLAYERS) == 1) {
-	        new->Round_no++;
-	    }
 	    //printf("%d\n", new->Round_no);
 	   
 	    //Figuring out the move of the Player -> locations
-	    int k = 0;
+	    //Figuring out the length of the String;
+	    int String_Length = 0;
 	    for (int j = 1; cur_play[j] != '.'; j++) {
-	        PlayerAbrLoc[k] = cur_play[j];
-	        k++;
+	        String_Length++;
 	    }
-        //PlayerAbrLoc[k+1] = '\0';
-        
-        
+	    
+	    //Initialising a string with same length
+	    char PlayerAbrLoc[2];
+	    //Copying the Location onto the string
+	    int l = 0;
+	    for (int j = 1; cur_play[j] != '.'; j++) {
+	        PlayerAbrLoc[l] = cur_play[j];
+	        l++;
+	    }
+
         //Converting Player String to a placeID
         PlaceId PlayerLoc = placeAbbrevToId(PlayerAbrLoc);
-	        printf("%d\n", PlayerLoc);
+	       
+	       
+	       
 	    //Changing the location of the current player
 	    for (int i = 0; i < NUM_PLAYERS; i++) {
             if (new->PlayerList[i].Player_Name == new->Current_Player) {
                 new->PlayerList[i].Player_Location = PlayerLoc;
-                printf("%d\n", new->PlayerList[i].Player_Location);
             }
         }
 	
-	        //if the player is dracula and vampire round
+	   
+	    //If both the hunter and Dracula meet
 	        
 	        
 	        
-	        //Add vampire into linked list of vampires.
 	        
 	        
 	        
@@ -173,11 +174,45 @@ GameView GvNew(char *pastPlays, Message messages[])
 	    
 	    
 	    
+	     
+	    
+	    //New round has started when after dracula's turn
+	    if (pastPlays_counter > 4 && (pastPlays_counter % NUM_PLAYERS) == 0) {
+	        new->Round_no++;
+	        //Decreasing the game score
+	        new->GameScore--;
+	        
+	        //If the Vampire State is 1
+	        if (new->Vampire.Vampire_State == 1) {
+	            new->Vampire.Vampire_Round++;
+	        }
+	        
+	      
+	        //if it is the first round or every 13 rounds after that add vampire
+	        if ((new->Round_no % 13) == 1) {
+	            new->Vampire.Vampire_State = 1;
+	            new->Vampire.Vampire_Round = 0;
+	            new->Vampire.Vampire_Location = PlayerLoc;
+	        }
+	        
+	        
+	        //If the vampire has been alive for 6 rounds
+	        if (new->Vampire.Vampire_Round == 6) {
+	        new->GameScore = new->GameScore - SCORE_LOSS_VAMPIRE_MATURES;
+	        
+	        }
+	        
+	        
+	        
+	        
+	    }
+	    
 	    //Next Player 
+	    //Changing the current Player
+	    new->Current_Player = PlayerArray[pastPlays_counter % NUM_PLAYERS];
 	    
-	    
-	    //
 	    cur_play = strtok(NULL, " \n");
+	  
 	}
 	
 	
