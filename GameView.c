@@ -70,6 +70,7 @@ struct gameView {
 	playerView PlayerList[NUM_PLAYERS]; 
 	//Struct for immature vampires (use linked list?)
 	Vampire Vampire;
+	//Linked List for Trail
 	
 };
 
@@ -173,6 +174,28 @@ GameView GvNew(char *pastPlays, Message messages[])
             //Checking the next part of the string
             
             //First Encounter          
+            if (cur_play[3] == 'D' && Death_Flag != 1) {
+                *P_Health = *P_Health - LIFE_LOSS_DRACULA_ENCOUNTER;               
+                *D_Health = *D_Health - LIFE_LOSS_HUNTER_ENCOUNTER ;                               
+                if (*P_Health <= 0) {         
+                    *P_Location = ST_JOSEPH_AND_ST_MARY;
+                    new->GameScore = new->GameScore - SCORE_LOSS_HUNTER_HOSPITAL;
+                    *P_Health = 9;
+                    Death_Flag = 1;
+                }
+                if (*D_Health <= 0) {
+                    return new;
+                }
+            } else if (cur_play[3] == 'V' && Death_Flag != 1) {
+                new->Vampire.Vampire_Location = NOWHERE;
+                new->Vampire.Vampire_Round = 0;
+                new->Vampire.Vampire_State = 0;             
+            } else if (cur_play[3] == 'T' && Death_Flag != 1) {
+                *P_Health = *P_Health - LIFE_LOSS_TRAP_ENCOUNTER ;
+                //Get rid of trap ->needs to be implemented
+            }
+            
+            //Second Encounter 
             if (cur_play[4] == 'D' && Death_Flag != 1) {
                 *P_Health = *P_Health - LIFE_LOSS_DRACULA_ENCOUNTER;               
                 *D_Health = *D_Health - LIFE_LOSS_HUNTER_ENCOUNTER ;                               
@@ -194,7 +217,8 @@ GameView GvNew(char *pastPlays, Message messages[])
                 //Get rid of trap ->needs to be implemented
             }
             
-            //Second Encounter 
+                              
+            //Third Encounter
             if (cur_play[5] == 'D' && Death_Flag != 1) {
                 *P_Health = *P_Health - LIFE_LOSS_DRACULA_ENCOUNTER;               
                 *D_Health = *D_Health - LIFE_LOSS_HUNTER_ENCOUNTER ;                               
@@ -214,10 +238,9 @@ GameView GvNew(char *pastPlays, Message messages[])
             } else if (cur_play[5] == 'T' && Death_Flag != 1) {
                 *P_Health = *P_Health - LIFE_LOSS_TRAP_ENCOUNTER ;
                 //Get rid of trap ->needs to be implemented
-            }
-            
-                              
-            //Third Encounter
+            }                   
+                        
+            //Fourth Encounter
             if (cur_play[6] == 'D' && Death_Flag != 1) {
                 *P_Health = *P_Health - LIFE_LOSS_DRACULA_ENCOUNTER;               
                 *D_Health = *D_Health - LIFE_LOSS_HUNTER_ENCOUNTER ;                               
@@ -237,41 +260,30 @@ GameView GvNew(char *pastPlays, Message messages[])
             } else if (cur_play[6] == 'T' && Death_Flag != 1) {
                 *P_Health = *P_Health - LIFE_LOSS_TRAP_ENCOUNTER ;
                 //Get rid of trap ->needs to be implemented
-            }                   
-                        
-            //Fourth Encounter
-            if (cur_play[7] == 'D' && Death_Flag != 1) {
-                *P_Health = *P_Health - LIFE_LOSS_DRACULA_ENCOUNTER;               
-                *D_Health = *D_Health - LIFE_LOSS_HUNTER_ENCOUNTER ;                               
-                if (*P_Health <= 0) {         
-                    *P_Location = ST_JOSEPH_AND_ST_MARY;
-                    new->GameScore = new->GameScore - SCORE_LOSS_HUNTER_HOSPITAL;
-                    *P_Health = GAME_START_HUNTER_LIFE_POINTS;
-                    Death_Flag = 1;
-                }
-                if (*D_Health <= 0) {
-                    return new;
-                }
-            } else if (cur_play[7] == 'V' && Death_Flag != 1) {
-                new->Vampire.Vampire_Location = NOWHERE;
-                new->Vampire.Vampire_Round = 0;
-                new->Vampire.Vampire_State = 0;             
-            } else if (cur_play[7] == 'T' && Death_Flag != 1) {
-                *P_Health = *P_Health - LIFE_LOSS_TRAP_ENCOUNTER ;
-                //Get rid of trap ->needs to be implemented
-            }
-           
-            
+            }           
+//////////////////////////////DRACULA TURN//////////////////////////////////////            
         } else if ((pastPlays_counter % NUM_PLAYERS) == 0) {
-             
-
+            
+            //DoubleBack 1
+            if (PlayerLoc == DOUBLE_BACK_1) {
+                PlayerLoc = *P_Location;
+            }
+            
 	        //Changing the location of dracula
 	        for (int i = 0; i < NUM_PLAYERS; i++) {
                 if (new->PlayerList[i].Player_Name == new->Current_Player) {
                     new->PlayerList[i].Player_Location = PlayerLoc;
                 }
-            }	  
-	    }
+            }	
+      
+            //If Dracula stays in the same location and it is still a sea
+	        if (placeIdToType(PlayerLoc) == SEA) {	      
+	            *D_Health = *D_Health - LIFE_LOSS_SEA ;
+	            if (*D_Health <= 0) {
+                    return new;
+                }               
+	        }
+	        
 	    	    
 	    //If both the hunter and Dracula meet
 	        
@@ -285,11 +297,8 @@ GameView GvNew(char *pastPlays, Message messages[])
 	    
 	    
 	    //Change the player location to moves
-	    
-	    
-	    
-	     
-	    
+	    	     
+        }	    
 	    //New round has started when after dracula's turn
 	    if (pastPlays_counter > 4 && (pastPlays_counter % NUM_PLAYERS) == 0) {
 	        new->Round_no++;
