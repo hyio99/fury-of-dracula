@@ -81,8 +81,10 @@ GameView GvNew(char *pastPlays, Message messages[])
     //copying string into a string literal
     char Past_Plays[TURN_LIMIT_MSECS];
     strcpy(Past_Plays, pastPlays);
-    
-
+    //Simplifying terms
+    int *P_Health;
+    int *P_Location;
+    int *D_Health;
 //////////////////////////INITIALISING STATE////////////////////////////////////
 	GameView new = malloc(sizeof(*new));
 	if (new == NULL) {
@@ -115,7 +117,6 @@ GameView GvNew(char *pastPlays, Message messages[])
 	
 	
 	
-	
 //////////////////////////READING PLAYS/////////////////////////////////////////
 
   
@@ -123,42 +124,155 @@ GameView GvNew(char *pastPlays, Message messages[])
 	char *cur_play = strtok(Past_Plays, " \n");
 	
 	int pastPlays_counter = 0;
-	//counting the round numbers
+
 	while (cur_play != NULL) {
+	
+	    //Simplifying terms
+        P_Health = &new->PlayerList[new->Current_Player].Player_Health;
+        P_Location = &new->PlayerList[new->Current_Player].Player_Location;
+        D_Health = &new->PlayerList[PLAYER_DRACULA].Player_Health;  
+	    int Death_Flag = 0;
 	    
 	    pastPlays_counter++;
-	    
-	    //printf("%d\n", new->Round_no);
 	   
-	    //Figuring out the move of the Player -> locations
-	    //Figuring out the length of the String;
-	    int String_Length = 0;
-	    for (int j = 1; cur_play[j] != '.'; j++) {
-	        String_Length++;
-	    }
-	    
-	    //Initialising a string with same length
-	    char PlayerAbrLoc[2];
-	    //Copying the Location onto the string
-	    int l = 0;
-	    for (int j = 1; cur_play[j] != '.'; j++) {
-	        PlayerAbrLoc[l] = cur_play[j];
-	        l++;
-	    }
+	   
+//////////////////////////////HUNTER TURN///////////////////////////////////////
+        
+        	        	        
+        //Initialising a string with player location
+        char PlayerAbrLoc[2];
+        
+        //Copying the Location onto the string
+        int l = 0;
+        for (int j = 1; j < 3; j++) {
+            PlayerAbrLoc[l] = cur_play[j];
+            l++;
+        }
 
         //Converting Player String to a placeID
         PlaceId PlayerLoc = placeAbbrevToId(PlayerAbrLoc);
-	       
-	       
-	       
-	    //Changing the location of the current player
-	    for (int i = 0; i < NUM_PLAYERS; i++) {
-            if (new->PlayerList[i].Player_Name == new->Current_Player) {
-                new->PlayerList[i].Player_Location = PlayerLoc;
+        
+        if ((pastPlays_counter % NUM_PLAYERS) != 0) {
+	           
+	        //If the Player Rests
+	        if (*P_Location == PlayerLoc) {
+	            *P_Health = *P_Health + LIFE_GAIN_REST;
+	            if (*P_Health > 9) {
+	                *P_Health = 9;
+	            }
+	             
+	        }	        	        
+	           	           
+	        //Changing the location of the current hunter
+	        for (int i = 0; i < NUM_PLAYERS; i++) {
+                if (new->PlayerList[i].Player_Name == new->Current_Player) {
+                    new->PlayerList[i].Player_Location = PlayerLoc;
+                }
             }
-        }
-	
-	   
+            
+            //Checking the next part of the string
+            
+            //First Encounter          
+            if (cur_play[4] == 'D' && Death_Flag != 1) {
+                *P_Health = *P_Health - LIFE_LOSS_DRACULA_ENCOUNTER;               
+                *D_Health = *D_Health - LIFE_LOSS_HUNTER_ENCOUNTER ;                               
+                if (*P_Health <= 0) {         
+                    *P_Location = ST_JOSEPH_AND_ST_MARY;
+                    new->GameScore = new->GameScore - SCORE_LOSS_HUNTER_HOSPITAL;
+                    *P_Health = GAME_START_HUNTER_LIFE_POINTS;
+                    Death_Flag = 1;
+                }
+                if (*D_Health <= 0) {
+                    return new;
+                }
+            } else if (cur_play[4] == 'V' && Death_Flag != 1) {
+                new->Vampire.Vampire_Location = NOWHERE;
+                new->Vampire.Vampire_Round = 0;
+                new->Vampire.Vampire_State = 0;             
+            } else if (cur_play[4] == 'T' && Death_Flag != 1) {
+                *P_Health = *P_Health - LIFE_LOSS_TRAP_ENCOUNTER ;
+                //Get rid of trap ->needs to be implemented
+            }
+            
+            //Second Encounter 
+            if (cur_play[5] == 'D' && Death_Flag != 1) {
+                *P_Health = *P_Health - LIFE_LOSS_DRACULA_ENCOUNTER;               
+                *D_Health = *D_Health - LIFE_LOSS_HUNTER_ENCOUNTER ;                               
+                if (*P_Health <= 0) {         
+                    *P_Location = ST_JOSEPH_AND_ST_MARY;
+                    new->GameScore = new->GameScore - SCORE_LOSS_HUNTER_HOSPITAL;
+                    *P_Health = GAME_START_HUNTER_LIFE_POINTS;
+                    Death_Flag = 1;
+                }
+                if (*D_Health <= 0) {
+                    return new;
+                }
+            } else if (cur_play[5] == 'V' && Death_Flag != 1) {
+                new->Vampire.Vampire_Location = NOWHERE;
+                new->Vampire.Vampire_Round = 0;
+                new->Vampire.Vampire_State = 0;             
+            } else if (cur_play[5] == 'T' && Death_Flag != 1) {
+                *P_Health = *P_Health - LIFE_LOSS_TRAP_ENCOUNTER ;
+                //Get rid of trap ->needs to be implemented
+            }
+            
+                              
+            //Third Encounter
+            if (cur_play[6] == 'D' && Death_Flag != 1) {
+                *P_Health = *P_Health - LIFE_LOSS_DRACULA_ENCOUNTER;               
+                *D_Health = *D_Health - LIFE_LOSS_HUNTER_ENCOUNTER ;                               
+                if (*P_Health <= 0) {         
+                    *P_Location = ST_JOSEPH_AND_ST_MARY;
+                    new->GameScore = new->GameScore - SCORE_LOSS_HUNTER_HOSPITAL;
+                    *P_Health = GAME_START_HUNTER_LIFE_POINTS;
+                    Death_Flag = 1;
+                }
+                if (*D_Health <= 0) {
+                    return new;
+                }
+            } else if (cur_play[6] == 'V' && Death_Flag != 1) {
+                new->Vampire.Vampire_Location = NOWHERE;
+                new->Vampire.Vampire_Round = 0;
+                new->Vampire.Vampire_State = 0;             
+            } else if (cur_play[6] == 'T' && Death_Flag != 1) {
+                *P_Health = *P_Health - LIFE_LOSS_TRAP_ENCOUNTER ;
+                //Get rid of trap ->needs to be implemented
+            }                   
+                        
+            //Fourth Encounter
+            if (cur_play[7] == 'D' && Death_Flag != 1) {
+                *P_Health = *P_Health - LIFE_LOSS_DRACULA_ENCOUNTER;               
+                *D_Health = *D_Health - LIFE_LOSS_HUNTER_ENCOUNTER ;                               
+                if (*P_Health <= 0) {         
+                    *P_Location = ST_JOSEPH_AND_ST_MARY;
+                    new->GameScore = new->GameScore - SCORE_LOSS_HUNTER_HOSPITAL;
+                    *P_Health = GAME_START_HUNTER_LIFE_POINTS;
+                    Death_Flag = 1;
+                }
+                if (*D_Health <= 0) {
+                    return new;
+                }
+            } else if (cur_play[7] == 'V' && Death_Flag != 1) {
+                new->Vampire.Vampire_Location = NOWHERE;
+                new->Vampire.Vampire_Round = 0;
+                new->Vampire.Vampire_State = 0;             
+            } else if (cur_play[7] == 'T' && Death_Flag != 1) {
+                *P_Health = *P_Health - LIFE_LOSS_TRAP_ENCOUNTER ;
+                //Get rid of trap ->needs to be implemented
+            }
+           
+            
+        } else if ((pastPlays_counter % NUM_PLAYERS) == 0) {
+             
+
+	        //Changing the location of dracula
+	        for (int i = 0; i < NUM_PLAYERS; i++) {
+                if (new->PlayerList[i].Player_Name == new->Current_Player) {
+                    new->PlayerList[i].Player_Location = PlayerLoc;
+                }
+            }	  
+	    }
+	    	    
 	    //If both the hunter and Dracula meet
 	        
 	        
