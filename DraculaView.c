@@ -110,7 +110,11 @@ int DvGetHealth(DraculaView dv, Player player)
 {
 	for (int i = 0; i < NUM_PLAYERS; i++) {
 	    if (dv->PlayerList[i].Player_Name == player) {
+<<<<<<< HEAD
 	        return dv->PlayerList[i].Player_Health;
+=======
+	        return dv->hp;
+>>>>>>> 648c6ff96a24ddaadce88e07173ae70c1067c749
 	    }
 	}
 	//maybe return error code if not found?
@@ -119,6 +123,7 @@ int DvGetHealth(DraculaView dv, Player player)
 
 PlaceId DvGetPlayerLocation(DraculaView dv, Player player)
 {
+<<<<<<< HEAD
 	//Player Location for Everyone as Gameview shows all
     
     for (int i = 0; i < NUM_PLAYERS; i++) {
@@ -139,6 +144,11 @@ PlaceId DvGetPlayerLocation(DraculaView dv, Player player)
 	        return CITY_UNKNOWN;
 	    } else {
 	        return SEA_UNKNOWN;
+=======
+	for (int i = 0; i < NUM_PLAYERS; i++) {
+	    if (dv->PlayerList[i].Player_Name == player) {
+	        return dv->draculaLocation;
+>>>>>>> 648c6ff96a24ddaadce88e07173ae70c1067c749
 	    }
 	}
 	//maybe return error code if not found?*/
