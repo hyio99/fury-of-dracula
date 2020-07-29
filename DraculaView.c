@@ -58,18 +58,18 @@ void DvFree(DraculaView dv)
 
 Round DvGetRound(DraculaView dv)
 {
-	return gv->Round_no;
+	return dv->Round_no;
 }
 
 int DvGetScore(DraculaView dv)
 {
-	return gv->GameScore;
+	return dv->GameScore;
 }
 
 int DvGetHealth(DraculaView dv, Player player)
 {
 	for (int i = 0; i < NUM_PLAYERS; i++) {
-	    if (gv->PlayerList[i].Player_Name == player) {
+	    if (dv->PlayerList[i].Player_Name == player) {
 	        return dv->hp;
 	    }
 	}
@@ -80,7 +80,7 @@ int DvGetHealth(DraculaView dv, Player player)
 PlaceId DvGetPlayerLocation(DraculaView dv, Player player)
 {
 	for (int i = 0; i < NUM_PLAYERS; i++) {
-	    if (gv->PlayerList[i].Player_Name == player) {
+	    if (dv->PlayerList[i].Player_Name == player) {
 	        return dv->draculaLocation;
 	    }
 	}
