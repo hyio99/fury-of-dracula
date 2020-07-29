@@ -36,9 +36,10 @@ struct Trail {
     struct Trail *next;
 
 }; Trail;*/
-typedef struct Trail {
-    PlaceId Trail_Location;
-} Trail;
+typedef enum Vampire_State {
+    VAMPIRE_TRUE,
+    VAMPIRE_FALSE
+} Vampire_State;
 
 
 //Struct for Player Views
@@ -69,8 +70,8 @@ struct gameView {
 	playerView PlayerList[NUM_PLAYERS]; 
 	//Struct for immature vampires (use linked list?)
 	Vampire Vampire;
-	//Array for Trail
-	Trail Trail[TRAIL_SIZE];
+	//Linked List for Trail
+	
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -85,7 +86,6 @@ GameView GvNew(char *pastPlays, Message messages[])
     int *P_Health;
     int *P_Location;
     int *D_Health;
-    int *D_Location;
 //////////////////////////INITIALISING STATE////////////////////////////////////
 	GameView new = malloc(sizeof(*new));
 	if (new == NULL) {
@@ -116,17 +116,14 @@ GameView GvNew(char *pastPlays, Message messages[])
 	new->Vampire.Vampire_Location = NOWHERE;
 	new->Vampire.Vampire_Round = 0;
 	
-	//Initialising the Trail_Location
-	for (int i = 0; i < TRAIL_SIZE; i++) {
-	    new->Trail[i].Trail_Location = NOWHERE;
-	}
+	
 	
 //////////////////////////READING PLAYS/////////////////////////////////////////
 
   
 	//Reading in the PastPlays using strtok
 	char *cur_play = strtok(Past_Plays, " \n");
-	int Death_Flag = 0;
+	
 	int pastPlays_counter = 0;
 
 	while (cur_play != NULL) {
@@ -135,7 +132,7 @@ GameView GvNew(char *pastPlays, Message messages[])
         P_Health = &new->PlayerList[new->Current_Player].Player_Health;
         P_Location = &new->PlayerList[new->Current_Player].Player_Location;
         D_Health = &new->PlayerList[PLAYER_DRACULA].Player_Health;  
-	    D_Location = &new->PlayerList[PLAYER_DRACULA].Player_Location;  
+	    int Death_Flag = 0;
 	    
 	    pastPlays_counter++;
 	   
@@ -145,10 +142,7 @@ GameView GvNew(char *pastPlays, Message messages[])
         	        	        
         //Initialising a string with player location
         char PlayerAbrLoc[2];
-        if (Death_Flag == 1) {          
-            new->PlayerList[new->Current_Player-1].Player_Health = 9;
-            Death_Flag = 0;
-        }
+        
         //Copying the Location onto the string
         int l = 0;
         for (int j = 1; j < 3; j++) {
@@ -184,9 +178,9 @@ GameView GvNew(char *pastPlays, Message messages[])
                 *P_Health = *P_Health - LIFE_LOSS_DRACULA_ENCOUNTER;               
                 *D_Health = *D_Health - LIFE_LOSS_HUNTER_ENCOUNTER ;                               
                 if (*P_Health <= 0) {         
-                    *P_Health = 0;
                     *P_Location = ST_JOSEPH_AND_ST_MARY;
-                    new->GameScore = new->GameScore - SCORE_LOSS_HUNTER_HOSPITAL;                   
+                    new->GameScore = new->GameScore - SCORE_LOSS_HUNTER_HOSPITAL;
+                    *P_Health = 9;
                     Death_Flag = 1;
                 }
                 if (*D_Health <= 0) {
@@ -205,10 +199,10 @@ GameView GvNew(char *pastPlays, Message messages[])
             if (cur_play[4] == 'D' && Death_Flag != 1) {
                 *P_Health = *P_Health - LIFE_LOSS_DRACULA_ENCOUNTER;               
                 *D_Health = *D_Health - LIFE_LOSS_HUNTER_ENCOUNTER ;                               
-                if (*P_Health <= 0) {
-                    *P_Health = 0;       
+                if (*P_Health <= 0) {         
                     *P_Location = ST_JOSEPH_AND_ST_MARY;
-                    new->GameScore = new->GameScore - SCORE_LOSS_HUNTER_HOSPITAL;                   
+                    new->GameScore = new->GameScore - SCORE_LOSS_HUNTER_HOSPITAL;
+                    *P_Health = GAME_START_HUNTER_LIFE_POINTS;
                     Death_Flag = 1;
                 }
                 if (*D_Health <= 0) {
@@ -228,10 +222,10 @@ GameView GvNew(char *pastPlays, Message messages[])
             if (cur_play[5] == 'D' && Death_Flag != 1) {
                 *P_Health = *P_Health - LIFE_LOSS_DRACULA_ENCOUNTER;               
                 *D_Health = *D_Health - LIFE_LOSS_HUNTER_ENCOUNTER ;                               
-                if (*P_Health <= 0) {
-                    *P_Health = 0;         
+                if (*P_Health <= 0) {         
                     *P_Location = ST_JOSEPH_AND_ST_MARY;
                     new->GameScore = new->GameScore - SCORE_LOSS_HUNTER_HOSPITAL;
+                    *P_Health = GAME_START_HUNTER_LIFE_POINTS;
                     Death_Flag = 1;
                 }
                 if (*D_Health <= 0) {
@@ -250,10 +244,10 @@ GameView GvNew(char *pastPlays, Message messages[])
             if (cur_play[6] == 'D' && Death_Flag != 1) {
                 *P_Health = *P_Health - LIFE_LOSS_DRACULA_ENCOUNTER;               
                 *D_Health = *D_Health - LIFE_LOSS_HUNTER_ENCOUNTER ;                               
-                if (*P_Health <= 0) {
-                    *P_Health = 0;         
+                if (*P_Health <= 0) {         
                     *P_Location = ST_JOSEPH_AND_ST_MARY;
                     new->GameScore = new->GameScore - SCORE_LOSS_HUNTER_HOSPITAL;
+                    *P_Health = GAME_START_HUNTER_LIFE_POINTS;
                     Death_Flag = 1;
                 }
                 if (*D_Health <= 0) {
@@ -281,16 +275,7 @@ GameView GvNew(char *pastPlays, Message messages[])
                     new->PlayerList[i].Player_Location = PlayerLoc;
                 }
             }	
-            
-            //Adding Location to the front of Queue (Pushing every other one)           
-            //Loop that pushes down the trail location
-            for (int i = TRAIL_SIZE; i > 0; i--) {
-                 //PlaceId Temp = new->Trail[i].Trail_Location;
-                 new->Trail[i].Trail_Location =  new->Trail[i-1].Trail_Location;
-            }
-            new->Trail[0].Trail_Location = *D_Location;
-            
-            
+      
             //If Dracula stays in the same location and it is still a sea
 	        if (placeIdToType(PlayerLoc) == SEA) {	      
 	            *D_Health = *D_Health - LIFE_LOSS_SEA ;
@@ -344,7 +329,7 @@ GameView GvNew(char *pastPlays, Message messages[])
 	        
 	        
 	    }
-	    //printf("%d%d%d%d%d%d\n", new->Trail[0].Trail_Location,new->Trail[1].Trail_Location,new->Trail[2].Trail_Location,new->Trail[3].Trail_Location,new->Trail[4].Trail_Location,new->Trail[5].Trail_Location);
+	    
 	    //Next Player 
 	    //Changing the current Player
 	    new->Current_Player = PlayerArray[pastPlays_counter % NUM_PLAYERS];
@@ -352,7 +337,7 @@ GameView GvNew(char *pastPlays, Message messages[])
 	    cur_play = strtok(NULL, " \n");
 	  
 	}
-
+	
 	
 	
 	
