@@ -20,13 +20,35 @@
 #include "Map.h"
 // add your own #includes here
 
-// TODO: ADD YOUR OWN STRUCTS HERE
+
+//Struct for Player Views
+typedef struct playerView {
+    Player Player_Name;
+    int Player_Health;
+    PlaceId Player_Location;
+    
+} playerView;
+
+//Struct for immature vampires
+typedef struct Vampire {
+    int Vampire_State;
+    int Vampire_Round;
+    PlaceId Vampire_Location;
+
+} Vampire;
 
 struct draculaView {
-    int hp;
+    //Integer for GameScore
+	int GameScore;
+	//Integer for round no.
 	Round Round_no;
-    int GameScore;
-    ConnList draculaLocation;
+	//Player who has the current turn
+	Player Current_Player;
+	//Linked-list of players/array
+	playerView PlayerList[NUM_PLAYERS]; 
+	//Struct for immature vampires (use linked list?)
+	Vampire Vampire;
+	//Linked List for Trail
     
 };
 
@@ -35,16 +57,34 @@ struct draculaView {
 
 DraculaView DvNew(char *pastPlays, Message messages[])
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	DraculaView new = malloc(sizeof(*new));
+	GameView new = malloc(sizeof(*new));
 	if (new == NULL) {
-		fprintf(stderr, "Couldn't allocate DraculaView\n");
+		fprintf(stderr, "Couldn't allocate GameView!\n");
 		exit(EXIT_FAILURE);
 	}
-	new->hp = 40;
-	draculaLocation->p = cd;
-
-	return new;
+	new->GameScore = GAME_START_SCORE;
+	new->Round_no = 0;
+	new->Current_Player = PLAYER_LORD_GODALMING;
+	
+	Player PlayerArray[] = {PLAYER_LORD_GODALMING, PLAYER_DR_SEWARD, 
+	                        PLAYER_VAN_HELSING,	PLAYER_MINA_HARKER,		
+	                        PLAYER_DRACULA};
+	                        
+	                       
+	//Initialising the Player Structs
+	for (int i = 0; i < NUM_PLAYERS; i++) {
+	    new->PlayerList[i].Player_Name = PlayerArray[i];
+	    if (new->PlayerList[i].Player_Name == PLAYER_DRACULA) {
+	        new->PlayerList[i].Player_Health = GAME_START_BLOOD_POINTS;
+	    } else {
+	        new->PlayerList[i].Player_Health = GAME_START_HUNTER_LIFE_POINTS;
+	    }
+	    new->PlayerList[i].Player_Location = NOWHERE;
+	}
+	
+	//Initialising the Vampire
+	new->Vampire.Vampire_Location = NOWHERE;
+	new->Vampire.Vampire_Round = 0;
 }
 
 void DvFree(DraculaView dv)
@@ -58,19 +98,19 @@ void DvFree(DraculaView dv)
 
 Round DvGetRound(DraculaView dv)
 {
-	return gv->Round_no;
+	return dv->Round_no;
 }
 
 int DvGetScore(DraculaView dv)
 {
-	return gv->GameScore;
+	return dv->GameScore;
 }
 
 int DvGetHealth(DraculaView dv, Player player)
 {
 	for (int i = 0; i < NUM_PLAYERS; i++) {
-	    if (gv->PlayerList[i].Player_Name == player) {
-	        return dv->hp;
+	    if (dv->PlayerList[i].Player_Name == player) {
+	        return dv->PlayerList[i].Player_Health;
 	    }
 	}
 	//maybe return error code if not found?
@@ -79,19 +119,35 @@ int DvGetHealth(DraculaView dv, Player player)
 
 PlaceId DvGetPlayerLocation(DraculaView dv, Player player)
 {
-	for (int i = 0; i < NUM_PLAYERS; i++) {
-	    if (gv->PlayerList[i].Player_Name == player) {
-	        return dv->draculaLocation;
+	//Player Location for Everyone as Gameview shows all
+    
+    for (int i = 0; i < NUM_PLAYERS; i++) {
+        if (dv->PlayerList[i].Player_Name == player) {
+            return dv->PlayerList[i].Player_Location;
+        }
+    }
+
+	/*else {
+	//Player Location for Dracula
+	    //Loop that checks if location has been revealed / if Dracula's current
+	    //location has been revealed anywhere in the trail
+	    
+	    //else if it hasn't been revealed
+	    
+	    //Check for whether the place is on land or sea
+	    if (placeIsLand(gv->PlayerList[PLAYER_DRACULA].Player_Location) == LAND) {
+	        return CITY_UNKNOWN;
+	    } else {
+	        return SEA_UNKNOWN;
 	    }
 	}
-	//maybe return error code if not found?
-	return NOWHERE;
+	//maybe return error code if not found?*/
+	return 0;
 }
 
 PlaceId DvGetVampireLocation(DraculaView dv)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return NOWHERE;
+	return dv->Vampire.Vampire_Location;
 }
 
 PlaceId *DvGetTrapLocations(DraculaView dv, int *numTraps)
