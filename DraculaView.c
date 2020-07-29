@@ -23,7 +23,11 @@
 // TODO: ADD YOUR OWN STRUCTS HERE
 
 struct draculaView {
-	// TODO: ADD FIELDS HERE
+    int hp;
+	Round Round_no;
+    int GameScore;
+    ConnList draculaLocation;
+    
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -37,13 +41,15 @@ DraculaView DvNew(char *pastPlays, Message messages[])
 		fprintf(stderr, "Couldn't allocate DraculaView\n");
 		exit(EXIT_FAILURE);
 	}
+	new->hp = 40;
+	draculaLocation->p = cd;
 
 	return new;
 }
 
 void DvFree(DraculaView dv)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+    
 	free(dv);
 }
 
@@ -52,25 +58,33 @@ void DvFree(DraculaView dv)
 
 Round DvGetRound(DraculaView dv)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return 0;
+	return gv->Round_no;
 }
 
 int DvGetScore(DraculaView dv)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return 0;
+	return gv->GameScore;
 }
 
 int DvGetHealth(DraculaView dv, Player player)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+	for (int i = 0; i < NUM_PLAYERS; i++) {
+	    if (gv->PlayerList[i].Player_Name == player) {
+	        return dv->hp;
+	    }
+	}
+	//maybe return error code if not found?
 	return 0;
 }
 
 PlaceId DvGetPlayerLocation(DraculaView dv, Player player)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+	for (int i = 0; i < NUM_PLAYERS; i++) {
+	    if (gv->PlayerList[i].Player_Name == player) {
+	        return dv->draculaLocation;
+	    }
+	}
+	//maybe return error code if not found?
 	return NOWHERE;
 }
 
