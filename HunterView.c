@@ -24,7 +24,7 @@
 // TODO: ADD YOUR OWN STRUCTS HERE
 
 struct hunterView {
-	// TODO: ADD FIELDS HERE
+	GameView gV;
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -54,7 +54,7 @@ void HvFree(HunterView hv)
 Round HvGetRound(HunterView hv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return 0;
+	return getRound(hv->gV);
 }
 
 Player HvGetPlayer(HunterView hv)
@@ -66,13 +66,13 @@ Player HvGetPlayer(HunterView hv)
 int HvGetScore(HunterView hv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return 0;
+	return getscore(hv->gV);
 }
 
 int HvGetHealth(HunterView hv, Player player)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return 0;
+	return gethealth(hv->gV, player);
 }
 
 PlaceId HvGetPlayerLocation(HunterView hv, Player player)
