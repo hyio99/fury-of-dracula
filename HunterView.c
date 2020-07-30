@@ -54,7 +54,7 @@ void HvFree(HunterView hv)
 Round HvGetRound(HunterView hv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return getRound(hv->gV);
+	return GvGetRound(hv->gV);
 }
 
 Player HvGetPlayer(HunterView hv)
@@ -66,25 +66,25 @@ Player HvGetPlayer(HunterView hv)
 int HvGetScore(HunterView hv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return getscore(hv->gV);
+	return GvGetscore(hv->gV);
 }
 
 int HvGetHealth(HunterView hv, Player player)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return gethealth(hv->gV, player);
+	return GvGethealth(hv->gV, player);
 }
 
 PlaceId HvGetPlayerLocation(HunterView hv, Player player)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return NOWHERE;
+	return GvGetPlayerLocation(hv->gV, player;
 }
 
 PlaceId HvGetVampireLocation(HunterView hv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return NOWHERE;
+	return GvGetVampireLocation(hv->gV);
 }
 
 ////////////////////////////////////////////////////////////////////////
