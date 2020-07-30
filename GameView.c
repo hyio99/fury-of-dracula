@@ -38,6 +38,7 @@ struct Trail {
 }; Trail;*/
 typedef struct Trail {
     PlaceId Trail_Location;
+    int Trap_State;
 } Trail;
 
 
@@ -71,6 +72,8 @@ struct gameView {
 	Vampire Vampire;
 	//Array for Trail
 	Trail Trail[TRAIL_SIZE];
+	
+	
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -86,6 +89,7 @@ GameView GvNew(char *pastPlays, Message messages[])
     int *P_Location;
     int *D_Health;
     int *D_Location;
+    
 //////////////////////////INITIALISING STATE////////////////////////////////////
 	GameView new = malloc(sizeof(*new));
 	if (new == NULL) {
@@ -116,9 +120,10 @@ GameView GvNew(char *pastPlays, Message messages[])
 	new->Vampire.Vampire_Location = NOWHERE;
 	new->Vampire.Vampire_Round = 0;
 	
-	//Initialising the Trail_Location
+	//Initialising the Trail_Location & Trap_State
 	for (int i = 0; i < TRAIL_SIZE; i++) {
 	    new->Trail[i].Trail_Location = NOWHERE;
+	    new->Trail[i].Trap_State = 0;
 	}
 	
 //////////////////////////READING PLAYS/////////////////////////////////////////
@@ -128,6 +133,8 @@ GameView GvNew(char *pastPlays, Message messages[])
 	char *cur_play = strtok(Past_Plays, " \n");
 	int Death_Flag = 0;
 	int pastPlays_counter = 0;
+	int Trail_Flag = 0;
+	int TrapCount;
 
 	while (cur_play != NULL) {
 	
@@ -198,7 +205,12 @@ GameView GvNew(char *pastPlays, Message messages[])
                 new->Vampire.Vampire_State = 0;             
             } else if (cur_play[3] == 'T' && Death_Flag != 1) {
                 *P_Health = *P_Health - LIFE_LOSS_TRAP_ENCOUNTER ;
-                //Get rid of trap ->needs to be implemented
+                //Removing Trap from Dracula's Trail
+                for (int i = TRAIL_SIZE - 1; i > 0; i--) {
+                     if (new->Trail[i].Trail_Location == *P_Location) {
+                         new->Trail[i].Trap_State = 0;
+                     }                
+                }
             }
             
             //Second Encounter 
@@ -220,7 +232,16 @@ GameView GvNew(char *pastPlays, Message messages[])
                 new->Vampire.Vampire_State = 0;             
             } else if (cur_play[4] == 'T' && Death_Flag != 1) {
                 *P_Health = *P_Health - LIFE_LOSS_TRAP_ENCOUNTER ;
-                //Get rid of trap ->needs to be implemented
+                //Removing 2nd Trap from Dracula's Trail
+                TrapCount = 0;
+                for (int i = TRAIL_SIZE - 1; i > 0; i--) {
+                     if (new->Trail[i].Trail_Location == *P_Location) {
+                         TrapCount++;
+                         if (TrapCount == 1) {
+                            new->Trail[i].Trap_State = 0;
+                         }
+                     }                
+                }
             }
             
                               
@@ -243,7 +264,16 @@ GameView GvNew(char *pastPlays, Message messages[])
                 new->Vampire.Vampire_State = 0;             
             } else if (cur_play[5] == 'T' && Death_Flag != 1) {
                 *P_Health = *P_Health - LIFE_LOSS_TRAP_ENCOUNTER ;
-                //Get rid of trap ->needs to be implemented
+                //Removing 3rd Trap from Dracula's Trail
+                TrapCount = 0;
+                for (int i = TRAIL_SIZE - 1; i > 0; i--) {
+                     if (new->Trail[i].Trail_Location == *P_Location) {
+                         TrapCount++;
+                         if (TrapCount == 2) {
+                            new->Trail[i].Trap_State = 0;
+                         }
+                     }                
+                }
             }                   
                         
             //Fourth Encounter
@@ -265,14 +295,94 @@ GameView GvNew(char *pastPlays, Message messages[])
                 new->Vampire.Vampire_State = 0;             
             } else if (cur_play[6] == 'T' && Death_Flag != 1) {
                 *P_Health = *P_Health - LIFE_LOSS_TRAP_ENCOUNTER ;
-                //Get rid of trap ->needs to be implemented
+                //Technically impossible but just for edge
             }           
+            
+            
 //////////////////////////////DRACULA TURN//////////////////////////////////////            
         } else if ((pastPlays_counter % NUM_PLAYERS) == 0) {
             
-            //DoubleBack 1
-            if (PlayerLoc == DOUBLE_BACK_1) {
+            
+            //If Dracula Hides
+            //printf("%d\n", Trail_Flag);
+            if (PlayerLoc == HIDE) {
                 PlayerLoc = *P_Location;
+            }
+            
+            //Doubleback 1
+            if (PlayerLoc == DOUBLE_BACK_1 && Trail_Flag >= 6) {
+                PlayerLoc = new->Trail[5].Trail_Location;
+            } else if (PlayerLoc == DOUBLE_BACK_1) {
+                for (int i = TRAIL_SIZE - 1; i >= 0; i--) {
+                    if (new->Trail[i].Trail_Location != NOWHERE && 
+                        new->Trail[i].Trail_Location != CITY_UNKNOWN) {                        
+                        PlayerLoc = new->Trail[i].Trail_Location;
+                    }
+                }
+            }
+            
+            //Doubleback 2
+            if (PlayerLoc == DOUBLE_BACK_2 && Trail_Flag >= 6) {
+                PlayerLoc = new->Trail[4].Trail_Location;
+            } else if (PlayerLoc == DOUBLE_BACK_2) {
+                int doubleBack = 0;
+                for (int i = TRAIL_SIZE - 1; i >= 0; i--) {
+                    if (new->Trail[i].Trail_Location != NOWHERE && 
+                        new->Trail[i].Trail_Location != CITY_UNKNOWN) {  
+                        doubleBack++;
+                        if (doubleBack > 0) {                      
+                            PlayerLoc = new->Trail[i].Trail_Location;
+                        }
+                    }                   
+                }
+            }
+            
+            //Doubleback 3
+            if (PlayerLoc == DOUBLE_BACK_3 && Trail_Flag >= 6) {
+                PlayerLoc = new->Trail[3].Trail_Location;
+            } else if (PlayerLoc == DOUBLE_BACK_3) {
+                int doubleBack = 0;
+                for (int i = TRAIL_SIZE - 1; i >= 0; i--) {
+                    if (new->Trail[i].Trail_Location != NOWHERE && 
+                        new->Trail[i].Trail_Location != CITY_UNKNOWN) {  
+                        doubleBack++;
+                        if (doubleBack > 1) {                      
+                            PlayerLoc = new->Trail[i].Trail_Location;
+                        }
+                    }                   
+                }
+            }
+            
+            //Doubleback 4
+            if (PlayerLoc == DOUBLE_BACK_4 && Trail_Flag >= 6) {
+                PlayerLoc = new->Trail[2].Trail_Location;
+            } else if (PlayerLoc == DOUBLE_BACK_4) {
+                int doubleBack = 0;
+                for (int i = TRAIL_SIZE - 1; i >= 0; i--) {
+                    if (new->Trail[i].Trail_Location != NOWHERE && 
+                        new->Trail[i].Trail_Location != CITY_UNKNOWN) {  
+                        doubleBack++;
+                        if (doubleBack > 2) {                      
+                            PlayerLoc = new->Trail[i].Trail_Location;
+                        }
+                    }                   
+                }
+            }                      
+            
+            //Doubleback 5
+            if (PlayerLoc == DOUBLE_BACK_5 && Trail_Flag >= 6) {
+                PlayerLoc = new->Trail[2].Trail_Location;
+            } else if (PlayerLoc == DOUBLE_BACK_5) {
+                int doubleBack = 0;
+                for (int i = TRAIL_SIZE - 1; i >= 0; i--) {
+                    if (new->Trail[i].Trail_Location != NOWHERE && 
+                        new->Trail[i].Trail_Location != CITY_UNKNOWN) {  
+                        doubleBack++;
+                        if (doubleBack > 3) {                      
+                            PlayerLoc = new->Trail[i].Trail_Location;
+                        }
+                    }                   
+                }
             }
             
 	        //Changing the location of dracula
@@ -284,11 +394,27 @@ GameView GvNew(char *pastPlays, Message messages[])
             
             //Adding Location to the front of Queue (Pushing every other one)           
             //Loop that pushes down the trail location
-            for (int i = TRAIL_SIZE; i > 0; i--) {
+            for (int i = TRAIL_SIZE - 1; i > 0; i--) {
                  //PlaceId Temp = new->Trail[i].Trail_Location;
                  new->Trail[i].Trail_Location =  new->Trail[i-1].Trail_Location;
+                 new->Trail[i].Trap_State = new->Trail[i-1].Trap_State;
             }
             new->Trail[0].Trail_Location = *D_Location;
+            
+            
+            //Adding Trap to the Trail if round is not a Vampire Round & enc < 3
+            //Counting the no. of encounters in the city
+            if (cur_play[3] == 'T') {
+                new->Trail[0].Trap_State = 1;
+            }
+            
+            
+            
+            ////If Dracula stays in Castle Dracula
+            if (*D_Location == CASTLE_DRACULA) {
+                *D_Health = *D_Health + LIFE_GAIN_CASTLE_DRACULA;
+            
+            }
             
             
             //If Dracula stays in the same location and it is still a sea
@@ -298,27 +424,22 @@ GameView GvNew(char *pastPlays, Message messages[])
                     return new;
                 }               
 	        }
-	        
+	    }    
 	    	    
-	    //If both the hunter and Dracula meet
-	        
-	        
-	        
-	        
-	        
-	        
-	            //If Dracula is on sea -2
-	    
+
+
 	    
 	    
 	    //Change the player location to moves
 	    	     
-        }	    
+      	    
 	    //New round has started when after dracula's turn
 	    if (pastPlays_counter > 4 && (pastPlays_counter % NUM_PLAYERS) == 0) {
 	        new->Round_no++;
 	        //Decreasing the game score
 	        new->GameScore--;
+	        //Increasing trailflag
+	        Trail_Flag++;
 	        
 	        //If the Vampire State is 1
 	        if (new->Vampire.Vampire_State == 1) {
@@ -337,14 +458,18 @@ GameView GvNew(char *pastPlays, Message messages[])
 	        //If the vampire has been alive for 6 rounds
 	        if (new->Vampire.Vampire_Round == 6) {
 	        new->GameScore = new->GameScore - SCORE_LOSS_VAMPIRE_MATURES;
+	        new->Vampire.Vampire_State = 0;
+	        new->Vampire.Vampire_Round = 0;
+	        new->Vampire.Vampire_Location = NOWHERE;
 	        
 	        }
 	        
-	        
-	        
+	        	        
 	        
 	    }
-	    //printf("%d%d%d%d%d%d\n", new->Trail[0].Trail_Location,new->Trail[1].Trail_Location,new->Trail[2].Trail_Location,new->Trail[3].Trail_Location,new->Trail[4].Trail_Location,new->Trail[5].Trail_Location);
+	    //printf("%d%d%d%d%d%d\n", new->Trail[0].Trail_Location,new->Trail[1].
+	    //Trail_Location,new->Trail[2].Trail_Location,new->Trail[3].Trail_Location
+	    //,new->Trail[4].Trail_Location,new->Trail[5].Trail_Location);
 	    //Next Player 
 	    //Changing the current Player
 	    new->Current_Player = PlayerArray[pastPlays_counter % NUM_PLAYERS];
@@ -429,15 +554,35 @@ PlaceId GvGetVampireLocation(GameView gv)
 
 PlaceId *GvGetTrapLocations(GameView gv, int *numTraps)
 {
+    int TrapCount = 0;
+    int Trail_Counter = 0;
 	//For each Trap, go through array of previous traps and see which ones are
 	//active. Count the num traps.
+	for (int i = 0; i < TRAIL_SIZE; i++) {
+	    if (gv->Trail[i].Trap_State == 1) {
+	        TrapCount++;
+	    }	
+	}	
+	if(numTraps == 0) {
+        return NULL;
+    }
+    //printf("%d\n", TrapCount);
+    *numTraps = TrapCount;
+    
+    //Dynamically allocate size of array based on numTraps	
+	PlaceId *Traps = malloc(sizeof(PlaceId)*TrapCount);
 	
-	//Dynamically allocate size of array based on numTraps
+	//Go through Trail add add all traps to array;
 	
-	//Copy paste the number of traps
+	for (int i = 0; i < TRAIL_SIZE; i++) {
+	    if (gv->Trail[i].Trap_State == 1) {
+	        Traps[Trail_Counter] = gv->Trail[i].Trail_Location;
+	        Trail_Counter++;
+	    }	
+	}	
 	
 	//Return the malloced array
-	return NULL;
+	return Traps;
 }
 
 ////////////////////////////////////////////////////////////////////////
