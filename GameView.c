@@ -434,13 +434,12 @@ GameView GvNew(char *pastPlays, Message messages[])
 
 	
 	
-	
 	return new;
 }
 
 void GvFree(GameView gv)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+	
 	free(gv);
 }
 
@@ -850,51 +849,7 @@ PlaceId *GvGetLastLocations(GameView gv, Player player, int numLocs,
 PlaceId *GvGetReachable(GameView gv, Player player, Round round,
                         PlaceId from, int *numReturnedLocs)
 {
-    /*//Getting placeId
-	PlaceId current;
-	int round_count = 0;
-	int action_count = 0;
-	
-	//initialising 1 strtok arrays
-    char play1[TURN_LIMIT_MSECS];
-	strcpy(play1, gv->Past_Plays);
-	//Finding the location in the right round
-	char *cur_play = strtok(play1, " \n");
-	while (cur_play != NULL) {
-	 
-	    if ((action_count % NUM_PLAYERS) == player) {
-	        round_count++;
-	    }
-	    //If the round is equal to input round, copy the current location
-	    if (round_count == round) {
-	        current = gv->PlayerList[player].Player_Location;
-	    }
-	    
-	    cur_play = strtok(NULL, " \n");
-	    action_count++;
-	}
-	printf("%d\n", current);*/
-	int connection_counter = 0;
-	Map current = MapNew();
-	
-	ConnList placeFrom = MapGetConnections(current, from);
-	    ConnList curr = placeFrom->next;
-	while (curr != NULL) {
-	    connection_counter++;
-	    printf("%d\n", curr->p);
-	    curr = curr->next;
-	}
-	
-	*numReturnedLocs = connection_counter;
-	
-	return NULL;
-}
-
-PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
-                              PlaceId from, bool road, bool rail,
-                              bool boat, int *numReturnedLocs)
-{
-    int reachable_counter = 0;
+    int reachable_counter = 1;
 	int connection_counter = 1;
 	Map current = MapNew();
 	//Counting the no. of connections in list
@@ -908,20 +863,100 @@ PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
 	
 	*numReturnedLocs = connection_counter;
 	//Creating an array that has all the connections
-	PlaceId *reachable_type = malloc(sizeof(PlaceId) * connection_counter);
 	
-	//Adding the locations to list if they satisy the conditions
-	ConnList placeFrom1 = MapGetConnections(current, from);
-	    ConnList curr1 = placeFrom->next;
-	while (curr1 != NULL) {
-	    if (curr1->type == road && curr1->type == rail && curr1->type == boat) {
-	        reachable_type[reachable_counter] = curr1->p;
-	    }
-	    curr1 = curr->next;
+	PlaceId *reachable_type = malloc(sizeof(PlaceId) * connection_counter);
+	reachable_type[0] = from;
+	//putting all places into the array
+	ConnList curr1 = placeFrom->next;
+	while (curr1 != NULL) {    
+	    reachable_type[reachable_counter] = curr1->p;
+	    curr1 = curr1->next;
+	   
 	}
 	
+	    
+	return reachable_type;
 	
-	return NULL;
+}
+
+PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
+                              PlaceId from, bool road, bool rail,
+                              bool boat, int *numReturnedLocs)
+{
+    int reachable_counter = 1;
+	int connection_counter = 1;
+	
+	Map current = MapNew();
+	//Counting the no. of connections in list
+	ConnList placeFrom = MapGetConnections(current, from);
+	    ConnList curr = placeFrom->next;
+	while (curr != NULL) {
+	    connection_counter++;
+	    printf("%d\n", curr->p);
+	    curr = curr->next;
+	}
+	
+	*numReturnedLocs = connection_counter;
+	//Creating an array that has all the connections
+	PlaceId *reachable_type = malloc(sizeof(PlaceId) * connection_counter);
+	//adding curr location if it 
+	
+	
+	//Adding the locations to list if they satisy the conditions
+	
+	ConnList curr1 = placeFrom->next;
+	while (curr1 != NULL) {
+	
+	    if (road == true) {
+	        if (rail == true) {
+	            if (boat == true) {
+	                //road == true, rail = true, boat == true
+	                if (curr1->type == ROAD || curr1->type == BOAT) {
+	                    reachable_type[reachable_counter] = curr1->p;
+	                    reachable_counter++;
+	                }
+	            } else {
+	                //road = true, rail == true, boat == false
+	                if (curr1->type == ROAD || curr1->type == RAIL) {
+	                    reachable_type[reachable_counter] = curr1->p;
+	                    reachable_counter++;
+	                }
+	            }        
+	        } else {
+	            if (boat == true) {
+	                //road == true, rail = false, boat == true 
+	            } else {
+	                //road = true, rail == false, boat == false
+	            }  
+	        }
+	    } else {
+	        if (rail == true) {
+	            if (boat == true) {
+	                //road == false, rail = true, boat == true 
+	            } else {
+	                //road = false, rail == true, boat == false
+	            }        
+	        } else {
+	            if (boat == true) {
+	                //road == false, rail = false, boat == true 
+	            } else {
+	                //road = false, rail == false, boat == false
+	            }  
+	        }
+	    
+	    }
+	
+	
+	    if (curr1->type == road && curr1->type == rail && curr1->type == boat) {
+	        reachable_type[reachable_counter] = curr1->p;
+	        
+	    }
+	    curr1 = curr1->next;
+	   
+	}
+	
+	    
+	return reachable_type;
 }
 
 ////////////////////////////////////////////////////////////////////////
