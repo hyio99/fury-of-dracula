@@ -797,7 +797,7 @@ PlaceId *GvGetLastLocations(GameView gv, Player player, int numLocs,
 
 	//Dynamically allocate an array based on number of moves
 	PlaceId *moves = malloc(sizeof(PlaceId) *move_count);
-
+        
 	
 	
 	if (player == PLAYER_DRACULA) {
@@ -849,32 +849,218 @@ PlaceId *GvGetLastLocations(GameView gv, Player player, int numLocs,
 PlaceId *GvGetReachable(GameView gv, Player player, Round round,
                         PlaceId from, int *numReturnedLocs)
 {
-    int reachable_counter = 1;
-	int connection_counter = 1;
-	Map current = MapNew();
-	//Counting the no. of connections in list
-	ConnList placeFrom = MapGetConnections(current, from);
-	    ConnList curr = placeFrom->next;
-	while (curr != NULL) {
-	    connection_counter++;
-	    printf("%d\n", curr->p);
-	    curr = curr->next;
-	}
-	
-	*numReturnedLocs = connection_counter;
-	//Creating an array that has all the connections
-	
-	PlaceId *reachable_type = malloc(sizeof(PlaceId) * connection_counter);
-	reachable_type[0] = from;
-	//putting all places into the array
-	ConnList curr1 = placeFrom->next;
-	while (curr1 != NULL) {    
-	    reachable_type[reachable_counter] = curr1->p;
-	    curr1 = curr1->next;
-	   
-	}
-	
-	    
+    Map current = MapNew();
+    int connection_counter = 0;
+    int reachable_counter = 0;
+    int rail_reachable = (round + player) % 4;
+    //int rail_travel = 0;
+    int rail_counter = 0;
+    
+    //if the player is player is player dracula
+    if (player == PLAYER_DRACULA) {
+        ConnList placeFrom = MapGetConnections(current, from);
+        ConnList curr = placeFrom;
+        
+        //Counting the no of valid connections to malloc array
+        while (curr != NULL) {
+            if (curr->type != RAIL && curr->p != ST_JOSEPH_AND_ST_MARY) {
+                reachable_counter++;           
+            }
+            curr = curr->next;
+        }
+        *numReturnedLocs = reachable_counter;
+        PlaceId *reachable_type = malloc(sizeof(PlaceId) * reachable_counter);
+        //Creating an array based of size based 
+        ConnList curr1 = placeFrom;
+        while (curr1 != NULL) {
+            if (curr1->type != RAIL && curr->p != ST_JOSEPH_AND_ST_MARY) {
+                reachable_type[connection_counter] = curr1->p;
+                connection_counter++;
+            }
+            curr1 = curr1->next;
+        }
+        MapFree(current);
+	    return reachable_type;
+    } 
+    
+//If the player is player hunter 
+    ConnList placeFrom = MapGetConnections(current, from);
+    ConnList curr = placeFrom;
+    
+    //Counting the no of valid connections by road and sea
+    while (curr != NULL) {
+        if (curr->type != RAIL) {
+            reachable_counter++;
+        }
+        curr = curr->next;
+    }
+    //creating a dynamic array of this size
+    PlaceId *reachable_type = malloc(sizeof(PlaceId) * reachable_counter);
+    
+    // Adding the valid connections in an array 
+    curr = placeFrom;
+    while (curr != NULL) {
+        if (curr->type != RAIL) {
+            reachable_type[connection_counter] = curr->p;
+            connection_counter++;
+        }
+        curr = curr->next;
+    }
+      
+    int r_connects = 0;
+    //If rail_reachable == 1
+    if (rail_reachable == 1) {
+        curr = placeFrom;
+        while (curr != NULL) {
+            //count how many rail connections there are
+            if (curr->type == RAIL) {
+                r_connects++;
+            }
+            curr = curr->next;      
+        }
+        //realloc the arrary to include for extra connections
+        reachable_type = realloc(reachable_type, sizeof(PlaceId) * 
+                                (reachable_counter + r_connects));
+        
+        //add in the extra ones.
+        while (curr != NULL) {
+            //count how many rail connections there are
+            if (curr->type == RAIL) {
+                reachable_type[connection_counter] = curr->p;
+                connection_counter++;
+            }
+            curr = curr->next;      
+        }
+        
+        //eliminate duplicates 
+        for (int i = 0; i < connection_counter; i++) {
+            for (int j = 1; j < connection_counter - 1; j++) {
+                if (reachable_type[i] == reachable_type[j]) {
+                    reachable_type[i] = NOWHERE;
+                }                
+            }      
+        }
+        int recounter = 0;
+        //recount
+        for (int i = 0; i < connection_counter; i++) {
+            if (reachable_type[i] != NOWHERE) {
+                recounter++;
+            }
+        }
+        
+        //make a new array with size recounter
+        PlaceId *railOne = malloc(sizeof(PlaceId) * recounter);
+        
+        //copy the array into the new array_counter
+        r_connects = 0;
+        for (int i = 0; i < connection_counter; i++) {
+            if (reachable_type[i] != NOWHERE) {
+                railOne[r_connects] = reachable_type[i];
+                r_connects++;
+            }
+        }
+        //return the array 
+        *numReturnedLocs = r_connects;
+        return railOne;
+        
+        
+    } else if (rail_reachable == 2) {
+        
+        
+        curr = placeFrom;
+        while (curr != NULL) {
+            //count how many rail connections there are
+            if (curr->type == RAIL) {
+                ConnList temp = MapGetConnections(current, curr->p);
+                ConnList curr1 = temp;
+                while (curr1 != NULL) {
+                    if (curr->type == RAIL) {
+                        r_connects++;
+                        curr1 = curr1->next;
+                    }
+                }
+                r_connects++;
+            }
+            curr = curr->next;      
+        }
+        
+        //realloc the arrary to include for extra connections
+        reachable_type = realloc(reachable_type, sizeof(PlaceId) * 
+                                (reachable_counter + r_connects));
+        
+        //add in the extra ones.
+        while (curr != NULL) {
+            //count how many rail connections there are
+            if (curr->type == RAIL) {
+                ConnList temp = MapGetConnections(current, curr->p);
+                ConnList curr1 = temp;
+                while (curr1 != NULL) {
+                    reachable_type[connection_counter] = curr1->p;
+                    connection_counter++;
+                    curr1 = curr1->next;
+                }
+                reachable_type[connection_counter] = curr->p;
+                connection_counter++;
+            }
+            curr = curr->next;      
+        }
+        
+        //eliminate duplicates 
+        for (int i = 0; i < connection_counter; i++) {
+            for (int j = 1; j < connection_counter - 1; j++) {
+                if (reachable_type[i] == reachable_type[j]) {
+                    reachable_type[i] = NOWHERE;
+                }                
+            }      
+        }
+        int recounter = 0;
+        //recount
+        for (int i = 0; i < connection_counter; i++) {
+            if (reachable_type[i] != NOWHERE) {
+                recounter++;
+            }
+        }
+        
+        //make a new array with size recounter
+        PlaceId *railOne = malloc(sizeof(PlaceId) * recounter);
+        
+        //copy the array into the new array_counter
+        r_connects = 0;
+        for (int i = 0; i < connection_counter; i++) {
+            if (reachable_type[i] != NOWHERE) {
+                railOne[r_connects] = reachable_type[i];
+                r_connects++;
+            }
+        }
+        //return the array 
+        *numReturnedLocs = r_connects;
+        return railOne;
+
+    //If rail_reachable == 3
+      
+
+    //Creating an array based of size based 
+     ConnList curr1 = placeFrom;
+     while (curr1 != NULL) {
+        if (curr1->type == RAIL) {
+            if (rail_counter < rail_reachable) {
+                rail_counter++;
+                reachable_type[connection_counter] = curr1->p;
+                connection_counter++;
+            } 
+        } else {
+            reachable_type[connection_counter] = curr1->p;
+            connection_counter++;
+        }
+   
+        curr1 = curr1->next;
+    }
+    
+    *numReturnedLocs = reachable_counter;
+        
+    //Counting the no of valid connections by sea
+    
+	MapFree(current);
 	return reachable_type;
 	
 }
@@ -883,83 +1069,90 @@ PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
                               PlaceId from, bool road, bool rail,
                               bool boat, int *numReturnedLocs)
 {
-    int reachable_counter = 1;
-	int connection_counter = 1;
-	
-	Map current = MapNew();
-	//Counting the no. of connections in list
-	ConnList placeFrom = MapGetConnections(current, from);
-	    ConnList curr = placeFrom->next;
-	while (curr != NULL) {
-	    connection_counter++;
-	    printf("%d\n", curr->p);
-	    curr = curr->next;
-	}
-	
-	*numReturnedLocs = connection_counter;
-	//Creating an array that has all the connections
-	PlaceId *reachable_type = malloc(sizeof(PlaceId) * connection_counter);
-	//adding curr location if it 
-	
-	
-	//Adding the locations to list if they satisy the conditions
-	
-	ConnList curr1 = placeFrom->next;
-	while (curr1 != NULL) {
-	
-	    if (road == true) {
-	        if (rail == true) {
-	            if (boat == true) {
-	                //road == true, rail = true, boat == true
-	                if (curr1->type == ROAD || curr1->type == BOAT) {
-	                    reachable_type[reachable_counter] = curr1->p;
-	                    reachable_counter++;
-	                }
-	            } else {
-	                //road = true, rail == true, boat == false
-	                if (curr1->type == ROAD || curr1->type == RAIL) {
-	                    reachable_type[reachable_counter] = curr1->p;
-	                    reachable_counter++;
-	                }
-	            }        
-	        } else {
-	            if (boat == true) {
-	                //road == true, rail = false, boat == true 
-	            } else {
-	                //road = true, rail == false, boat == false
-	            }  
-	        }
-	    } else {
-	        if (rail == true) {
-	            if (boat == true) {
-	                //road == false, rail = true, boat == true 
-	            } else {
-	                //road = false, rail == true, boat == false
-	            }        
-	        } else {
-	            if (boat == true) {
-	                //road == false, rail = false, boat == true 
-	            } else {
-	                //road = false, rail == false, boat == false
-	            }  
-	        }
-	    
-	    }
-	
-	
-	    if (curr1->type == road && curr1->type == rail && curr1->type == boat) {
-	        reachable_type[reachable_counter] = curr1->p;
-	        
-	    }
-	    curr1 = curr1->next;
-	   
-	}
-	
-	    
+    Map current = MapNew();
+    int connection_counter = 0;
+    int reachable_counter = 0;
+    int rail_reachable = (round + player) % 4;
+    int rail_travel = 0;
+    int rail_counter = 0;
+    
+    //if the player is player is player dracula
+    if (player == PLAYER_DRACULA) {
+        ConnList placeFrom = MapGetConnections(current, from);
+        ConnList curr = placeFrom;
+        
+        //Counting the no of road connections
+        while (curr != NULL) {
+            if (curr->type != RAIL && curr->p != ST_JOSEPH_AND_ST_MARY) {
+                reachable_counter++;           
+            }
+            curr = curr->next;
+        }
+        *numReturnedLocs = reachable_counter;
+        PlaceId *reachable_type = malloc(sizeof(PlaceId) * reachable_counter);
+        //Creating an array based of size based 
+        ConnList curr1 = placeFrom;
+        while (curr1 != NULL) {
+            if (curr1->type != RAIL && curr->p != ST_JOSEPH_AND_ST_MARY) {
+                reachable_type[connection_counter] = curr1->p;
+                connection_counter++;
+            }
+            curr1 = curr1->next;
+        }
+        MapFree(current);
+	    return reachable_type;
+    } 
+    
+//If the player is player hunter 
+    ConnList placeFrom = MapGetConnections(current, from);
+    ConnList curr = placeFrom;
+    
+    //Counting the no of valid connections in travel by Road
+    while (curr != NULL) {
+        if (curr->type == ROAD) {
+            reachable_counter++;         
+        } 
+        curr = curr->next;
+    }
+    
+    while (curr != NULL) {
+        printf("%d\n", curr->p);
+        if (curr->type == RAIL) {
+            if (rail_travel < rail_reachable) {
+                reachable_counter++;
+                rail_travel++;                
+            }           
+        } else {
+            reachable_counter++;
+        }
+        curr = curr->next; 
+    }
+    //mallocing array based on sized
+    *numReturnedLocs = reachable_counter;
+    PlaceId *reachable_type = malloc(sizeof(PlaceId) * reachable_counter);
+    //Creating an array based of size based 
+     ConnList curr1 = placeFrom;
+     while (curr1 != NULL) {
+        //printf("%d\n", curr1->p);
+        if (curr1->type == RAIL) {
+            if (rail_counter < rail_reachable) {
+                rail_counter++;
+                reachable_type[connection_counter] = curr1->p;
+                connection_counter++;
+            } 
+        } else {
+            reachable_type[connection_counter] = curr1->p;
+            connection_counter++;
+        }
+   
+        curr1 = curr1->next;
+    }
+        
+    
+    
+	MapFree(current);
 	return reachable_type;
 }
 
 ////////////////////////////////////////////////////////////////////////
 // Your own interface functions
-
-// TODO
