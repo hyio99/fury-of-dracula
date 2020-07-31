@@ -314,80 +314,30 @@ GameView GvNew(char *pastPlays, Message messages[])
             }
             
             //Doubleback 1
-            if (PlayerLoc == DOUBLE_BACK_1 && Trail_Flag >= 6) {
-                PlayerLoc = new->Trail[5].Trail_Location;
-            } else if (PlayerLoc == DOUBLE_BACK_1) {
-                for (int i = TRAIL_SIZE - 1; i >= 0; i--) {
-                    if (new->Trail[i].Trail_Location != NOWHERE && 
-                        new->Trail[i].Trail_Location != CITY_UNKNOWN) {                        
-                        PlayerLoc = new->Trail[i].Trail_Location;
-                    }
-                }
-            }
+            if (PlayerLoc == DOUBLE_BACK_1) {
+                PlayerLoc = new->Trail[0].Trail_Location;
+            } 
             
             //Doubleback 2
-            if (PlayerLoc == DOUBLE_BACK_2 && Trail_Flag >= 6) {
-                PlayerLoc = new->Trail[4].Trail_Location;
-            } else if (PlayerLoc == DOUBLE_BACK_2) {
-                int doubleBack = 0;
-                for (int i = TRAIL_SIZE - 1; i >= 0; i--) {
-                    if (new->Trail[i].Trail_Location != NOWHERE && 
-                        new->Trail[i].Trail_Location != CITY_UNKNOWN) {  
-                        doubleBack++;
-                        if (doubleBack > 0) {                      
-                            PlayerLoc = new->Trail[i].Trail_Location;
-                        }
-                    }                   
-                }
-            }
+            if (PlayerLoc == DOUBLE_BACK_2) {
+                PlayerLoc = new->Trail[1].Trail_Location;
+            } 
             
             //Doubleback 3
-            if (PlayerLoc == DOUBLE_BACK_3 && Trail_Flag >= 6) {
-                PlayerLoc = new->Trail[3].Trail_Location;
-            } else if (PlayerLoc == DOUBLE_BACK_3) {
-                int doubleBack = 0;
-                for (int i = TRAIL_SIZE - 1; i >= 0; i--) {
-                    if (new->Trail[i].Trail_Location != NOWHERE && 
-                        new->Trail[i].Trail_Location != CITY_UNKNOWN) {  
-                        doubleBack++;
-                        if (doubleBack > 1) {                      
-                            PlayerLoc = new->Trail[i].Trail_Location;
-                        }
-                    }                   
-                }
-            }
+            if (PlayerLoc == DOUBLE_BACK_3) {
+                PlayerLoc = new->Trail[2].Trail_Location;
+            } 
+            
             
             //Doubleback 4
-            if (PlayerLoc == DOUBLE_BACK_4 && Trail_Flag >= 6) {
-                PlayerLoc = new->Trail[2].Trail_Location;
-            } else if (PlayerLoc == DOUBLE_BACK_4) {
-                int doubleBack = 0;
-                for (int i = TRAIL_SIZE - 1; i >= 0; i--) {
-                    if (new->Trail[i].Trail_Location != NOWHERE && 
-                        new->Trail[i].Trail_Location != CITY_UNKNOWN) {  
-                        doubleBack++;
-                        if (doubleBack > 2) {                      
-                            PlayerLoc = new->Trail[i].Trail_Location;
-                        }
-                    }                   
-                }
-            }                      
+            if (PlayerLoc == DOUBLE_BACK_4) {
+                PlayerLoc = new->Trail[3].Trail_Location;
+            }           
             
             //Doubleback 5
-            if (PlayerLoc == DOUBLE_BACK_5 && Trail_Flag >= 6) {
-                PlayerLoc = new->Trail[2].Trail_Location;
-            } else if (PlayerLoc == DOUBLE_BACK_5) {
-                int doubleBack = 0;
-                for (int i = TRAIL_SIZE - 1; i >= 0; i--) {
-                    if (new->Trail[i].Trail_Location != NOWHERE && 
-                        new->Trail[i].Trail_Location != CITY_UNKNOWN) {  
-                        doubleBack++;
-                        if (doubleBack > 3) {                      
-                            PlayerLoc = new->Trail[i].Trail_Location;
-                        }
-                    }                   
-                }
-            }
+            if (PlayerLoc == DOUBLE_BACK_5) {
+                PlayerLoc = new->Trail[4].Trail_Location;
+            } 
             
 	        //Changing the location of dracula
 	        for (int i = 0; i < NUM_PLAYERS; i++) {
@@ -600,11 +550,12 @@ PlaceId *GvGetMoveHistory(GameView gv, Player player,
     int move_count = 0;
     int action_count = 0;
     int array_counter = 0;
-    
+    //Initialising 2 strtok strings
+    char play1[TURN_LIMIT_MSECS];
     char plays[TURN_LIMIT_MSECS];
+    strcpy(play1, gv->Past_Plays);
     strcpy(plays, gv->Past_Plays);
-    
-	char *cur_play = strtok(gv->Past_Plays, " \n");
+	char *cur_play = strtok(play1, " \n");
 	while (cur_play != NULL) {
 	    //printf("%s\n", cur_play);
 	    if ((action_count % NUM_PLAYERS) == player) {
@@ -644,7 +595,7 @@ PlaceId *GvGetMoveHistory(GameView gv, Player player,
 	        //Converting the location string into ID
 	        PlaceId temp = placeAbbrevToId(location);
 	        
-	        //rintf("%d\n", temp);
+	      
 	        moves[array_counter] = temp;
 	        array_counter++;
 	        
@@ -662,28 +613,235 @@ PlaceId *GvGetMoveHistory(GameView gv, Player player,
 PlaceId *GvGetLastMoves(GameView gv, Player player, int numMoves,
                         int *numReturnedMoves, bool *canFree)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	*numReturnedMoves = 0;
-	*canFree = false;
-	return NULL;
+	//counting how many moves the player had
+    char location[3];
+    int move_count = 0;
+    int action_count = 0;
+    int array_counter = 0;
+    
+    char plays[TURN_LIMIT_MSECS];
+    strcpy(plays, gv->Past_Plays);
+    
+	char *cur_play = strtok(gv->Past_Plays, " \n");
+	while (cur_play != NULL) {
+	    //printf("%s\n", cur_play);
+	    if ((action_count % NUM_PLAYERS) == player) {
+	        move_count++;
+	    }
+	    cur_play = strtok(NULL, " \n");
+	    action_count++;
+	}
+	//printf("%d\n", move_count);
+	if (numMoves > move_count) {
+	    *numReturnedMoves = move_count;
+	} else {
+	     move_count = numMoves;
+	     *numReturnedMoves = move_count;
+	}
+	
+	//if move_count == 0
+	if (move_count == 0) {
+	    return NULL;
+	}
+	//Dynamically allocate an array based on number of moves
+	PlaceId *moves = malloc(sizeof(PlaceId) *move_count);
+	
+	
+	//going through the array and setting the locations into placeID
+	char *history_play = strtok(plays, " \n");
+	//printf("%s\n", history_play);
+	
+    action_count = 0;
+	while (history_play != NULL && array_counter < move_count-1) {
+	   
+	    if ((action_count % NUM_PLAYERS) == player) {
+            //for next one while less than numMoves
+            int l = 0;
+	        for (int i = 1; i < 3; i++) {
+	            location[l] = history_play[i];
+	            l++;
+	        } 
+	        location[2] = '\0';
+	        
+	        
+	        //Converting the location string into ID
+	        PlaceId temp = placeAbbrevToId(location);
+	        
+	       
+	        moves[array_counter] = temp;
+	        array_counter++;
+	        
+	 	        
+	    }    
+	    action_count++;
+	    history_play = strtok(NULL, " \n");
+	}
+	
+	
+	*canFree = true;
+	return moves;
 }
 
 PlaceId *GvGetLocationHistory(GameView gv, Player player,
                               int *numReturnedLocs, bool *canFree)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	*numReturnedLocs = 0;
-	*canFree = false;
-	return NULL;
+	//counting how many moves the player had
+    char location[3];
+    int move_count = 0;
+    int action_count = 0;
+    int array_counter = 0;
+    //Initialising 2 strtok plays
+    char play1[TURN_LIMIT_MSECS];
+    char plays[TURN_LIMIT_MSECS];
+    strcpy(play1, gv->Past_Plays);
+    strcpy(plays, gv->Past_Plays);
+   
+	char *cur_play = strtok(play1, " \n");
+	while (cur_play != NULL) {
+	    //printf("%s\n", cur_play);
+	    if ((action_count % NUM_PLAYERS) == player) {
+	        move_count++;
+	    }
+	    cur_play = strtok(NULL, " \n");
+	    action_count++;
+	}
+	//printf("%d\n", move_count);
+	*numReturnedLocs = move_count;
+	
+	//if move_count == 0
+	if (move_count == 0) {
+	    return NULL;
+	}
+	//Dynamically allocate an array based on number of moves
+	PlaceId *moves = malloc(sizeof(PlaceId) *move_count);
+	
+	
+	if (player == PLAYER_DRACULA) {
+	    for (int i = 0; i < move_count; i++) {
+	        moves[move_count-1-i] = gv->Trail[i].Trail_Location;
+	    
+	    }
+	
+	} else {
+	    //going through the array and setting the locations into placeID
+	    char *history_play = strtok(plays, " \n");
+	    //printf("%s\n", history_play);
+	    
+        action_count = 0;
+	    while (history_play != NULL) {
+	      
+	        if ((action_count % NUM_PLAYERS) == player) {
+                //for next one while less than numMoves
+                int l = 0;
+	            for (int i = 1; i < 3; i++) {
+	                location[l] = history_play[i];
+	                l++;
+	            } 
+	            location[2] = '\0';
+	       
+	            
+	            //Converting the location string into ID
+	            PlaceId temp = placeAbbrevToId(location);
+	            
+	          
+	            moves[array_counter] = temp;
+	            array_counter++;
+	            
+	     	        
+	        }    
+	        action_count++;
+	        history_play = strtok(NULL, " \n");
+	    }
+	}
+	
+	
+	*canFree = true;
+	return moves;
 }
 
 PlaceId *GvGetLastLocations(GameView gv, Player player, int numLocs,
                             int *numReturnedLocs, bool *canFree)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	*numReturnedLocs = 0;
-	*canFree = false;
-	return 0;
+	//counting how many moves the player had
+    char location[3];
+    int move_count = 0;
+    int action_count = 0;
+    int array_counter = 0;
+    
+    //initialising 2 strtok arrays
+    char play1[TURN_LIMIT_MSECS];
+    char plays[TURN_LIMIT_MSECS];
+    strcpy(play1, gv->Past_Plays);
+    strcpy(plays, gv->Past_Plays);
+
+	char *cur_play = strtok(play1, " \n");
+	while (cur_play != NULL) {
+	 
+	    if ((action_count % NUM_PLAYERS) == player) {
+	        move_count++;
+	    }
+	    cur_play = strtok(NULL, " \n");
+	    action_count++;
+	}
+	//printf("%d\n", move_count);
+	if (numLocs > move_count) {
+	    *numReturnedLocs = move_count;
+	} else {
+	    move_count = numLocs;
+	    *numReturnedLocs = move_count;
+	}
+	
+	//if move_count == 0
+	if (move_count == 0) {
+	    return NULL;
+	}
+
+	//Dynamically allocate an array based on number of moves
+	PlaceId *moves = malloc(sizeof(PlaceId) *move_count);
+
+	
+	
+	if (player == PLAYER_DRACULA) {
+	    for (int i = 0; i < move_count; i++) {
+	        moves[move_count-1-i] = gv->Trail[i].Trail_Location;
+	    
+	    }
+	
+	} else {
+	    //going through the array and setting the locations into placeID
+	    char *history_play = strtok(plays, " \n");
+	    
+	    
+        action_count = 0;
+	    while (history_play != NULL) {
+	       
+	        if ((action_count % NUM_PLAYERS) == player && array_counter <= move_count) {
+                //for next one while less than numMoves
+                int l = 0;
+	            for (int i = 1; i < 3; i++) {
+	                location[l] = history_play[i];
+	                l++;
+	            } 
+	            location[2] = '\0';
+	            
+	            
+	            //Converting the location string into ID
+	            PlaceId temp = placeAbbrevToId(location);
+	            
+	            
+	            moves[array_counter] = temp;
+	            array_counter++;
+	            
+	     	        
+	        }    
+	        action_count++;
+	        history_play = strtok(NULL, " \n");
+	    }
+	}
+	
+	
+	*canFree = true;
+	return moves;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -692,8 +850,43 @@ PlaceId *GvGetLastLocations(GameView gv, Player player, int numLocs,
 PlaceId *GvGetReachable(GameView gv, Player player, Round round,
                         PlaceId from, int *numReturnedLocs)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	*numReturnedLocs = 0;
+    /*//Getting placeId
+	PlaceId current;
+	int round_count = 0;
+	int action_count = 0;
+	
+	//initialising 1 strtok arrays
+    char play1[TURN_LIMIT_MSECS];
+	strcpy(play1, gv->Past_Plays);
+	//Finding the location in the right round
+	char *cur_play = strtok(play1, " \n");
+	while (cur_play != NULL) {
+	 
+	    if ((action_count % NUM_PLAYERS) == player) {
+	        round_count++;
+	    }
+	    //If the round is equal to input round, copy the current location
+	    if (round_count == round) {
+	        current = gv->PlayerList[player].Player_Location;
+	    }
+	    
+	    cur_play = strtok(NULL, " \n");
+	    action_count++;
+	}
+	printf("%d\n", current);*/
+	int connection_counter = 0;
+	Map current = MapNew();
+	
+	ConnList placeFrom = MapGetConnections(current, from);
+	    ConnList curr = placeFrom->next;
+	while (curr != NULL) {
+	    connection_counter++;
+	    printf("%d\n", curr->p);
+	    curr = curr->next;
+	}
+	
+	*numReturnedLocs = connection_counter;
+	
 	return NULL;
 }
 
@@ -701,8 +894,33 @@ PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
                               PlaceId from, bool road, bool rail,
                               bool boat, int *numReturnedLocs)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	*numReturnedLocs = 0;
+    int reachable_counter = 0;
+	int connection_counter = 1;
+	Map current = MapNew();
+	//Counting the no. of connections in list
+	ConnList placeFrom = MapGetConnections(current, from);
+	    ConnList curr = placeFrom->next;
+	while (curr != NULL) {
+	    connection_counter++;
+	    printf("%d\n", curr->p);
+	    curr = curr->next;
+	}
+	
+	*numReturnedLocs = connection_counter;
+	//Creating an array that has all the connections
+	PlaceId *reachable_type = malloc(sizeof(PlaceId) * connection_counter);
+	
+	//Adding the locations to list if they satisy the conditions
+	ConnList placeFrom1 = MapGetConnections(current, from);
+	    ConnList curr1 = placeFrom->next;
+	while (curr1 != NULL) {
+	    if (curr1->type == road && curr1->type == rail && curr1->type == boat) {
+	        reachable_type[reachable_counter] = curr1->p;
+	    }
+	    curr1 = curr->next;
+	}
+	
+	
 	return NULL;
 }
 
