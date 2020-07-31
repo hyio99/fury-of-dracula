@@ -72,6 +72,8 @@ struct gameView {
 	Vampire Vampire;
 	//Array for Trail
 	Trail Trail[TRAIL_SIZE];
+	//The Moves turn
+	char Past_Plays[TURN_LIMIT_MSECS];
 	
 	
 };
@@ -125,6 +127,8 @@ GameView GvNew(char *pastPlays, Message messages[])
 	    new->Trail[i].Trail_Location = NOWHERE;
 	    new->Trail[i].Trap_State = 0;
 	}
+	
+	strcpy(new->Past_Plays, Past_Plays);
 	
 //////////////////////////READING PLAYS/////////////////////////////////////////
 
@@ -591,10 +595,68 @@ PlaceId *GvGetTrapLocations(GameView gv, int *numTraps)
 PlaceId *GvGetMoveHistory(GameView gv, Player player,
                           int *numReturnedMoves, bool *canFree)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	*numReturnedMoves = 0;
-	*canFree = false;
-	return NULL;
+    //counting how many moves the player had
+    char location[3];
+    int move_count = 0;
+    int action_count = 0;
+    int array_counter = 0;
+    
+    char plays[TURN_LIMIT_MSECS];
+    strcpy(plays, gv->Past_Plays);
+    
+	char *cur_play = strtok(gv->Past_Plays, " \n");
+	while (cur_play != NULL) {
+	    //printf("%s\n", cur_play);
+	    if ((action_count % NUM_PLAYERS) == player) {
+	        move_count++;
+	    }
+	    cur_play = strtok(NULL, " \n");
+	    action_count++;
+	}
+	//printf("%d\n", move_count);
+	*numReturnedMoves = move_count;
+	
+	//if move_count == 0
+	if (move_count == 0) {
+	    return NULL;
+	}
+	//Dynamically allocate an array based on number of moves
+	PlaceId *moves = malloc(sizeof(PlaceId) *move_count);
+	
+	
+	//going through the array and setting the locations into placeID
+	char *history_play = strtok(plays, " \n");
+	//printf("%s\n", history_play);
+	
+    action_count = 0;
+	while (history_play != NULL) {
+	    //printf("%s\n", history_play);
+	    if ((action_count % NUM_PLAYERS) == player) {
+            //for next one while less than numMoves
+            int l = 0;
+	        for (int i = 1; i < 3; i++) {
+	            location[l] = history_play[i];
+	            l++;
+	        } 
+	        location[2] = '\0';
+	        //printf("%s\n", location);
+	        
+	        //Converting the location string into ID
+	        PlaceId temp = placeAbbrevToId(location);
+	        
+	        //rintf("%d\n", temp);
+	        moves[array_counter] = temp;
+	        array_counter++;
+	        
+	 	        
+	    }    
+	    action_count++;
+	    history_play = strtok(NULL, " \n");
+	}
+	
+	
+	*canFree = true;
+	return moves;
 }
 
 PlaceId *GvGetLastMoves(GameView gv, Player player, int numMoves,
