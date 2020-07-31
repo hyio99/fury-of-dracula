@@ -469,6 +469,36 @@ int main(void)
 		printf("Test passed!\n");	
 	}
 	
+	{///////////////////////////////////////////////////////////////////
+	
+		printf("Checking Munich road connections "
+		       "(Dr. Seward 1)\n");
+		
+		char *trail =
+			"GSZ.... SMU.... ";
+		
+		Message messages[2] = {};
+		HunterView hv = HvNew(trail, messages);
+		
+		int numLocs = -1;
+		PlaceId *locs = HvWhereCanTheyGoByType(hv, PLAYER_DR_SEWARD,
+		                                       true, false, false, &numLocs);
+		assert(numLocs == 8);
+		sortPlaces(locs, numLocs);
+		assert(locs[0] == NUREMBURG);
+		assert(locs[1] == MILAN);
+		assert(locs[2] == MUNICH);
+		assert(locs[3] == STRASBOURG);
+		assert(locs[4] == VENICE);
+		assert(locs[5] == VIENNA);
+		assert(locs[6] == ZAGREB);
+		assert(locs[7] == ZURICH);
+		free(locs);
+		
+		HvFree(hv);
+		printf("Test passed!\n");	
+	}
+	
 	return EXIT_SUCCESS;
 }
 
